@@ -4,12 +4,11 @@ import { useState } from "react";
 import { InfoIcon } from "lucide-react";
 import { TextCategorizer } from "@/components/text-categorizer";
 import { SavedChunks } from "@/components/saved-chunks";
-import { TextChunk } from "@/lib/api/types";
 
 export function ProtectedContent() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const handleChunksSaved = (chunks: TextChunk[]) => {
+  const handleChunksSaved = () => {
     // Trigger a refresh of the saved chunks component
     setRefreshTrigger(prev => prev + 1);
   };

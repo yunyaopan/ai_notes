@@ -132,7 +132,7 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
               <div className="flex items-center justify-between">
                 <select
                   value={chunk.category}
-                  onChange={(e) => updateChunk(index, 'category', e.target.value as any)}
+                  onChange={(e) => updateChunk(index, 'category', e.target.value as TextChunk['category'])}
                   className="px-3 py-1 border rounded-md text-sm"
                 >
                   {Object.entries(categoryLabels).map(([key, label]) => (
@@ -188,7 +188,7 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
       <CardHeader>
         <CardTitle>Text Categorizer</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Enter your thoughts and we'll categorize them into emotions, insights, gratitudes, worries, and more.
+          Enter your thoughts and we&apos;ll categorize them into emotions, insights, gratitudes, worries, and more.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
