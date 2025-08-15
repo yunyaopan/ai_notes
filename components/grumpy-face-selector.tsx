@@ -29,6 +29,26 @@ export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelec
     }
   };
 
+  // Handle touch move to detect which face is being touched
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isSelecting) return;
+    
+    e.preventDefault();
+    const touch = e.touches[0];
+    
+    // Get element at touch position
+    const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+    
+    // Find the closest face container
+    const faceContainer = elementBelow?.closest('[data-intensity]');
+    if (faceContainer) {
+      const intensity = faceContainer.getAttribute('data-intensity') as 'low' | 'medium' | 'high';
+      setHoveredIntensity(intensity);
+    } else {
+      setHoveredIntensity(null);
+    }
+  };
+
   const handleMouseUp = () => {
     if (isSelecting && hoveredIntensity) {
       onSelect?.(hoveredIntensity);
@@ -107,6 +127,7 @@ export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelec
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
           <div className="flex flex-col items-center space-y-6 max-w-sm w-full">
@@ -120,6 +141,7 @@ export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelec
             <div className="flex justify-center items-center w-full max-w-md mx-auto px-4 gap-4 sm:gap-8">
               {/* Low intensity - Left */}
               <div 
+                data-intensity="low"
                 className={`flex flex-col items-center transition-all duration-200 cursor-pointer ${
                   hoveredIntensity === 'low' ? 'scale-125' : 'scale-100'
                 }`}
@@ -137,6 +159,7 @@ export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelec
 
               {/* Medium intensity - Center */}
               <div 
+                data-intensity="medium"
                 className={`flex flex-col items-center transition-all duration-200 cursor-pointer ${
                   hoveredIntensity === 'medium' ? 'scale-125' : 'scale-100'
                 }`}
@@ -154,6 +177,7 @@ export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelec
 
               {/* High intensity - Right */}
               <div 
+                data-intensity="high"
                 className={`flex flex-col items-center transition-all duration-200 cursor-pointer ${
                   hoveredIntensity === 'high' ? 'scale-125' : 'scale-100'
                 }`}
