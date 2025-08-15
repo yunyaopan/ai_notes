@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { TextChunk } from '@/lib/api/types';
 import { CATEGORIES, getCategoryLabels, getCategoryColors } from '@/lib/config/categories';
+import { BreathingAnimation } from '@/components/breathing-animation';
 
 interface TextCategorizerProps {
   onSave?: (chunks: TextChunk[]) => void;
@@ -22,6 +23,7 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
   const [chunks, setChunks] = useState<Omit<TextChunk, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]>([]);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showBreathingAnimation, setShowBreathingAnimation] = useState(false);
 
   const handleSubmit = async () => {
     if (!text.trim() || text.length < 10) {
@@ -73,6 +75,9 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
 
       const data = await response.json();
       
+      // Check if any chunks are worries_anxiety category
+      const hasWorryChunks = chunks.some(chunk => chunk.category === 'worries_anxiety');
+      
       // Reset form
       setText('');
       setChunks([]);
@@ -82,13 +87,23 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
         onSave(data.chunks);
       }
       
-      alert('Text chunks saved successfully!');
+      // Show breathing animation if there were worry/anxiety chunks
+      if (hasWorryChunks) {
+        setShowBreathingAnimation(true);
+      } else {
+        alert('Text chunks saved successfully!');
+      }
     } catch (error) {
       console.error('Error saving chunks:', error);
       alert(error instanceof Error ? error.message : 'Failed to save chunks. Please try again.');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleBreathingComplete = () => {
+    setShowBreathingAnimation(false);
+    alert('Text chunks saved successfully! Take care of yourself. 💙');
   };
 
   const handleEdit = () => {
@@ -108,6 +123,7 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
 
   if (showConfirmation) {
     return (
+      <>
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Confirm Categorization</CardTitle>
@@ -169,10 +185,17 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Breathing Animation */}
+      {showBreathingAnimation && (
+        <BreathingAnimation onComplete={handleBreathingComplete} />
+      )}
+      </>
     );
   }
 
   return (
+    <>
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Text Categorizer</CardTitle>
@@ -216,5 +239,10 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
         </div>
       </CardContent>
     </Card>
+    {/* Breathing Animation */}
+    {showBreathingAnimation && (
+      <BreathingAnimation onComplete={handleBreathingComplete} />
+    )}
+    </>
   );
 }
