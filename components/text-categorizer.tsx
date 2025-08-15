@@ -216,35 +216,40 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
           Enter your thoughts and we&apos;ll categorize them into emotions, insights, gratitudes, worries, and more.
         </p>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Emotional Intensity Selector */}
-        <div className="space-y-3">
-          <Label>How are you feeling right now?</Label>
-          <div className="flex items-center justify-center p-4 border rounded-lg bg-gray-50">
-            <GrumpyFaceSelector 
-              onSelect={setEmotionalIntensity}
-              className="flex-shrink-0"
-            />
-          </div>
-          {emotionalIntensity && (
-            <div className="text-center">
-              <Badge variant="secondary" className="text-sm">
-                Selected: {emotionalIntensity.charAt(0).toUpperCase() + emotionalIntensity.slice(1)} intensity
-              </Badge>
-            </div>
-          )}
-        </div>
-
+      <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="text-input">Your Text</Label>
-          <textarea
-            id="text-input"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Share your thoughts, feelings, insights, or concerns here..."
-            className="w-full p-3 border rounded-md min-h-[200px] resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={isProcessing}
-          />
+          <div className="relative">
+            {/* Partially visible grumpy face behind text box */}
+            <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 z-0 transition-all duration-300 group">
+              <div className={`transition-all duration-300 ${emotionalIntensity ? 'translate-y-0' : 'translate-y-4'} group-hover:-translate-y-1`}>
+                <GrumpyFaceSelector 
+                  onSelect={setEmotionalIntensity}
+                  className="flex-shrink-0"
+                />
+                <div className={`text-center mt-2 transition-opacity duration-300 ${emotionalIntensity ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                  {emotionalIntensity ? (
+                    <Badge variant="secondary" className="text-xs">
+                      {emotionalIntensity.charAt(0).toUpperCase() + emotionalIntensity.slice(1)} intensity
+                    </Badge>
+                  ) : (
+                    <p className="text-xs text-muted-foreground bg-white/90 px-2 py-1 rounded shadow-sm">
+                      How are you feeling?
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <textarea
+              id="text-input"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Share your thoughts, feelings, insights, or concerns here..."
+              className="w-full p-3 border rounded-md min-h-[200px] resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-500 relative z-10"
+              disabled={isProcessing}
+            />
+          </div>
           <p className="text-xs text-muted-foreground">
             Minimum 10 characters required. Current: {text.length}
           </p>
