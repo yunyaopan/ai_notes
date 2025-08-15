@@ -29,6 +29,7 @@ export async function getUserTextChunks(userId: string): Promise<TextChunk[]> {
     .from('text_chunks')
     .select('*')
     .eq('user_id', userId)
+    .order('pinned', { ascending: false })
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -37,4 +38,42 @@ export async function getUserTextChunks(userId: string): Promise<TextChunk[]> {
   }
 
   return data || [];
+}
+
+export async function updateChunkPinStatus(chunkId: string, userId: string, pinned: boolean): Promise<TextChunk> {
+  const supabase = await createClient();
+  
+  // First, if we're pinning this chunk, unpin all other chunks for this user
+  if (pinned) {
+    const { error: unpinError } = await supabase
+      .from('text_chunks')
+      .update({ pinned: false })
+      .eq('user_id', userId)
+      .eq('pinned', true);
+    
+    if (unpinError) {
+      console.error('Database error unpinning other chunks:', unpinError);
+      throw new Error('Failed to unpin other chunks');
+    }
+  }
+  
+  // Now update the target chunk
+  const { data, error } = await supabase
+    .from('text_chunks')
+    .update({ pinned, updated_at: new Date().toISOString() })
+    .eq('id', chunkId)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Database error updating pin status:', error);
+    throw new Error('Failed to update chunk pin status');
+  }
+
+  if (!data) {
+    throw new Error('Chunk not found or access denied');
+  }
+
+  return data;
 }

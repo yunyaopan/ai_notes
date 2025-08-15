@@ -6,6 +6,7 @@ export interface TextChunk {
   id?: string;
   content: string;
   category: string; // Using string instead of union type for flexibility
+  pinned?: boolean;
   user_id: string;
   created_at?: string;
   updated_at?: string;
@@ -26,4 +27,14 @@ export interface SaveChunksRequest {
 export interface SaveChunksResponse {
   success: boolean;
   chunks: TextChunk[];
+}
+
+export interface PinChunkRequest {
+  chunkId: string;
+  pinned: boolean;
+}
+
+export interface PinChunkResponse {
+  success: boolean;
+  chunk: TextChunk;
 }

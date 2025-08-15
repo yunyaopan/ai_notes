@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS text_chunks (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     content TEXT NOT NULL,
     category TEXT NOT NULL,
+    pinned BOOLEAN DEFAULT FALSE,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -16,6 +17,9 @@ CREATE INDEX IF NOT EXISTS idx_text_chunks_category ON text_chunks(category);
 
 -- Create an index on created_at for sorting
 CREATE INDEX IF NOT EXISTS idx_text_chunks_created_at ON text_chunks(created_at DESC);
+
+-- Create an index on pinned for filtering pinned chunks
+CREATE INDEX IF NOT EXISTS idx_text_chunks_pinned ON text_chunks(pinned);
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE text_chunks ENABLE ROW LEVEL SECURITY;
