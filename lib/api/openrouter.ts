@@ -10,7 +10,7 @@ const openai = new OpenAI({
   },
 });
 
-export async function categorizeText(text: string) {
+export async function categorizeText(text: string): Promise<Array<{ content: string; category: string; }>> {
   const categoriesPrompt = generateCategoriesPrompt();
   const prompt = `${categoriesPrompt}
 
