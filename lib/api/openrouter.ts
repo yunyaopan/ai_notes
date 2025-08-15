@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: process.env.OPENROUTER_API_KEY,
+  apiKey: process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY,
   defaultHeaders: {
     'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
     'X-Title': 'AI Notes App',
@@ -11,13 +11,15 @@ const openai = new OpenAI({
 
 export async function categorizeText(text: string) {
   const prompt = `
-Please analyze the following text and categorize it into chunks based on emotional content and themes. 
-Separate the text into these categories:
+Separate the text into chunks based on line breaks. 
+
+Categorize the text into these categories:
 1. "other_emotions" - General emotional expressions (happiness, sadness, anger, etc.)
 2. "insights" - Realizations, learnings, or understanding gained
 3. "gratitudes" - Things the person is grateful for or appreciates
 4. "worries_anxiety" - Concerns, fears, anxious thoughts, or stress
-5. "other" - Content that doesn't fit the above categories
+5. "affirmations" - Positive affirmations, self-encouragement, or positive statements
+6. "other" - Content that doesn't fit the above categories
 
 Return the result as a JSON array where each object has:
 - "content": the text chunk
@@ -26,7 +28,6 @@ Return the result as a JSON array where each object has:
 Text to analyze:
 ${text}
 
-Please ensure each chunk is meaningful and complete. Combine related sentences when appropriate.
 `;
 
   const completion = await openai.chat.completions.create({
