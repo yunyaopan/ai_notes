@@ -127,7 +127,7 @@ export function BreathingAnimation({ onComplete }: BreathingAnimationProps) {
       <Card className="w-full max-w-md mx-4">
         <CardContent className="p-8 text-center">
           <h3 className="text-xl font-semibold mb-6 text-gray-800">
-            Take a moment to breathe
+                      It&apos;s just a passing wave of emotion—let it rise and fall. Breathe, and let your breath carry you through. 
           </h3>
           
           <div className="flex flex-col items-center space-y-6">

@@ -55,10 +55,10 @@ export function PinnedChunk({ refreshTrigger }: PinnedChunkProps) {
   const categoryConfig = CATEGORIES.find(cat => cat.key === pinnedChunk.category);
 
   return (
-    <Card className="w-full bg-yellow-50 border-yellow-200">
+    <Card className="w-full bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800/30">
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <Pin className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+          <Pin className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <Badge className={categoryConfig?.color || 'bg-gray-100 text-gray-800'}>

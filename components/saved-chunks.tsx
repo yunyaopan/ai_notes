@@ -260,13 +260,13 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                   return (
                     <div key={chunk.id} className={`rounded-lg p-3 relative group ${
                       chunk.pinned 
-                        ? 'bg-yellow-50 border-2 border-yellow-200' 
+                        ? 'bg-yellow-50 dark:bg-yellow-950/20 border-2 border-yellow-200 dark:border-yellow-800/30' 
                         : 'bg-muted/50'
                     }`}>
                       <div className="flex justify-between items-start">
                         <div className="flex items-start gap-2 pr-8">
                           {chunk.pinned && (
-                            <Pin className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                            <Pin className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
                           )}
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
@@ -360,13 +360,13 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                 {categoryChunks.map((chunk) => (
                   <div key={chunk.id} className={`rounded-lg p-3 relative group ${
                     chunk.pinned 
-                      ? 'bg-yellow-50 border-2 border-yellow-200' 
+                      ? 'bg-yellow-50 dark:bg-yellow-950/20 border-2 border-yellow-200 dark:border-yellow-800/30' 
                       : 'bg-muted/50'
                   }`}>
                     <div className="flex justify-between items-start">
                       <div className="flex items-start gap-2 pr-8">
                         {chunk.pinned && (
-                          <Pin className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                          <Pin className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
                         )}
                         <p className="text-sm leading-relaxed">{chunk.content}</p>
                       </div>

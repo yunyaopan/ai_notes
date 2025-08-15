@@ -49,6 +49,12 @@ export const CATEGORIES: CategoryConfig[] = [
     color: 'bg-orange-100 text-orange-800'
   },
   {
+    key: 'wish',
+    label: 'Wishes',
+    description: 'Wishes, Dreams, Desires',
+    color: 'bg-pink-100 text-pink-800'
+  },
+  {
     key: 'other',
     label: 'Other',
     description: 'Content that doesn\'t fit the above categories',
