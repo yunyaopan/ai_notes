@@ -37,6 +37,18 @@ export const CATEGORIES: CategoryConfig[] = [
     color: 'bg-green-100 text-green-800'
   },
   {
+    key: 'ideas',
+    label: 'Ideas',
+    description: 'Product Ideas, Business Ideas',
+    color: 'bg-purple-100 text-purple-800'
+  },
+  {
+    key: 'experiments',
+    label: 'Experiments',
+    description: 'Self Experiments, Trials',
+    color: 'bg-orange-100 text-orange-800'
+  },
+  {
     key: 'other',
     label: 'Other',
     description: 'Content that doesn\'t fit the above categories',

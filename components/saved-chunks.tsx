@@ -22,7 +22,7 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
   const [chunks, setChunks] = useState<TextChunk[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>('category');
+  const [sortBy, setSortBy] = useState<SortOption>('time');
   const [editingChunk, setEditingChunk] = useState<TextChunk | null>(null);
   const [editContent, setEditContent] = useState('');
   const [editCategory, setEditCategory] = useState('');
