@@ -15,9 +15,7 @@ export function ProtectedContent() {
 
   return (
     <div className="flex-1 w-full flex flex-col gap-8 max-w-4xl mx-auto">
-      <div className="space-y-8">
         <PinnedChunk refreshTrigger={refreshTrigger} />
-        
         <div>
           <h1 className="font-bold text-3xl mb-2">AI Text Categorizer</h1>
           <p className="text-muted-foreground">
@@ -28,7 +26,7 @@ export function ProtectedContent() {
         <TextCategorizer onSave={handleChunksSaved} />
         
         <SavedChunks refreshTrigger={refreshTrigger} />
-      </div>
+
     </div>
   );
 }
