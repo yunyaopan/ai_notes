@@ -38,3 +38,17 @@ export interface PinChunkResponse {
   success: boolean;
   chunk: TextChunk;
 }
+
+export interface UpdateChunkRequest {
+  content: string;
+  category: string;
+}
+
+export interface UpdateChunkResponse {
+  success: boolean;
+  chunk: TextChunk;
+}
+
+export interface DeleteChunkResponse {
+  success: boolean;
+}

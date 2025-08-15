@@ -77,3 +77,45 @@ export async function updateChunkPinStatus(chunkId: string, userId: string, pinn
 
   return data;
 }
+
+export async function updateTextChunk(chunkId: string, userId: string, content: string, category: string): Promise<TextChunk> {
+  const supabase = await createClient();
+  
+  const { data, error } = await supabase
+    .from('text_chunks')
+    .update({ 
+      content, 
+      category, 
+      updated_at: new Date().toISOString() 
+    })
+    .eq('id', chunkId)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Database error updating chunk:', error);
+    throw new Error('Failed to update chunk');
+  }
+
+  if (!data) {
+    throw new Error('Chunk not found or access denied');
+  }
+
+  return data;
+}
+
+export async function deleteTextChunk(chunkId: string, userId: string): Promise<void> {
+  const supabase = await createClient();
+  
+  const { error } = await supabase
+    .from('text_chunks')
+    .delete()
+    .eq('id', chunkId)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Database error deleting chunk:', error);
+    throw new Error('Failed to delete chunk');
+  }
+}

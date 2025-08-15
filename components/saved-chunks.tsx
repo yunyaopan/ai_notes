@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Label } from '@/components/ui/label';
 import { TextChunk } from '@/lib/api/types';
 import { CATEGORIES } from '@/lib/config/categories';
-import { MoreVertical, Pin, PinOff, ChevronDown, Clock, Tag } from 'lucide-react';
+import { MoreVertical, Pin, PinOff, ChevronDown, Clock, Tag, Edit, Trash2 } from 'lucide-react';
 
 // Category data is now accessed directly from CATEGORIES array
 
@@ -22,6 +23,9 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('category');
+  const [editingChunk, setEditingChunk] = useState<TextChunk | null>(null);
+  const [editContent, setEditContent] = useState('');
+  const [editCategory, setEditCategory] = useState('');
 
   const handleTogglePin = async (chunkId: string, currentlyPinned: boolean) => {
     try {
@@ -46,6 +50,72 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
     } catch (error) {
       console.error('Error updating pin status:', error);
       alert(error instanceof Error ? error.message : 'Failed to update pin status');
+    }
+  };
+
+  const handleEditChunk = (chunk: TextChunk) => {
+    setEditingChunk(chunk);
+    setEditContent(chunk.content);
+    setEditCategory(chunk.category);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingChunk || !editContent.trim()) return;
+    
+    try {
+      const response = await fetch(`/api/chunks/${editingChunk.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: editContent.trim(),
+          category: editCategory
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update chunk');
+      }
+
+      // Close edit modal and refresh
+      setEditingChunk(null);
+      setEditContent('');
+      setEditCategory('');
+      fetchChunks();
+    } catch (error) {
+      console.error('Error updating chunk:', error);
+      alert(error instanceof Error ? error.message : 'Failed to update chunk');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingChunk(null);
+    setEditContent('');
+    setEditCategory('');
+  };
+
+  const handleDeleteChunk = async (chunkId: string) => {
+    if (!confirm('Are you sure you want to delete this chunk? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/chunks/${chunkId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete chunk');
+      }
+
+      // Refresh chunks after deletion
+      fetchChunks();
+    } catch (error) {
+      console.error('Error deleting chunk:', error);
+      alert(error instanceof Error ? error.message : 'Failed to delete chunk');
     }
   };
 
@@ -234,6 +304,20 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                                 </>
                               )}
                             </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleEditChunk(chunk)}
+                              className="cursor-pointer"
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteChunk(chunk.id!)}
+                              className="cursor-pointer text-red-600 hover:text-red-800"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -313,6 +397,20 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                               </>
                             )}
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleEditChunk(chunk)}
+                            className="cursor-pointer"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteChunk(chunk.id!)}
+                            className="cursor-pointer text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -335,6 +433,53 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
         })
         )}
       </CardContent>
+      
+      {/* Edit Modal */}
+      {editingChunk && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Edit Chunk</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="edit-content">Content</Label>
+                <textarea
+                  id="edit-content"
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  className="w-full p-2 border rounded-md text-sm min-h-[100px] resize-vertical mt-1"
+                  placeholder="Edit your content..."
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-category">Category</Label>
+                <select
+                  id="edit-category"
+                  value={editCategory}
+                  onChange={(e) => setEditCategory(e.target.value)}
+                  className="w-full p-2 border rounded-md text-sm mt-1"
+                >
+                  {CATEGORIES.map((category) => (
+                    <option key={category.key} value={category.key}>
+                      {category.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            <div className="flex gap-2 mt-6">
+              <Button onClick={handleSaveEdit} className="flex-1">
+                Save Changes
+              </Button>
+              <Button onClick={handleCancelEdit} variant="outline" className="flex-1">
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
