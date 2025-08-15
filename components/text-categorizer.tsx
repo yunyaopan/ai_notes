@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { TextChunk } from '@/lib/api/types';
 import { CATEGORIES, getCategoryLabels, getCategoryColors } from '@/lib/config/categories';
 import { BreathingAnimation } from '@/components/breathing-animation';
+import { GrumpyFaceSelector } from '@/components/grumpy-face-selector';
 
 interface TextCategorizerProps {
   onSave?: (chunks: TextChunk[]) => void;
@@ -24,6 +25,7 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showBreathingAnimation, setShowBreathingAnimation] = useState(false);
+  const [emotionalIntensity, setEmotionalIntensity] = useState<'low' | 'medium' | 'high' | null>(null);
 
   const handleSubmit = async () => {
     if (!text.trim() || text.length < 10) {
@@ -38,7 +40,10 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: text.trim() }),
+        body: JSON.stringify({ 
+          text: text.trim(),
+          emotionalIntensity 
+        }),
       });
 
       if (!response.ok) {
@@ -82,6 +87,7 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
       setText('');
       setChunks([]);
       setShowConfirmation(false);
+      setEmotionalIntensity(null);
       
       if (onSave) {
         onSave(data.chunks);
@@ -130,6 +136,13 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
           <p className="text-sm text-muted-foreground">
             Review and edit the categorized chunks below. You can modify the text or change categories.
           </p>
+          {emotionalIntensity && (
+            <div className="mt-2">
+              <Badge variant="outline" className="text-xs">
+                Emotional Intensity: {emotionalIntensity.charAt(0).toUpperCase() + emotionalIntensity.slice(1)}
+              </Badge>
+            </div>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           {chunks.map((chunk, index) => (
@@ -203,7 +216,25 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
           Enter your thoughts and we&apos;ll categorize them into emotions, insights, gratitudes, worries, and more.
         </p>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
+        {/* Emotional Intensity Selector */}
+        <div className="space-y-3">
+          <Label>How are you feeling right now?</Label>
+          <div className="flex items-center justify-center p-4 border rounded-lg bg-gray-50">
+            <GrumpyFaceSelector 
+              onSelect={setEmotionalIntensity}
+              className="flex-shrink-0"
+            />
+          </div>
+          {emotionalIntensity && (
+            <div className="text-center">
+              <Badge variant="secondary" className="text-sm">
+                Selected: {emotionalIntensity.charAt(0).toUpperCase() + emotionalIntensity.slice(1)} intensity
+              </Badge>
+            </div>
+          )}
+        </div>
+
         <div className="space-y-2">
           <Label htmlFor="text-input">Your Text</Label>
           <textarea
@@ -227,16 +258,6 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
           {isProcessing ? 'Processing...' : 'Categorize Text'}
         </Button>
 
-        <div className="text-xs text-muted-foreground space-y-1">
-          <p><strong>Categories:</strong></p>
-          <div className="flex flex-wrap gap-1">
-            {CATEGORIES.map((category) => (
-              <Badge key={category.key} variant="outline" className={category.color}>
-                {category.label}
-              </Badge>
-            ))}
-          </div>
-        </div>
       </CardContent>
     </Card>
     {/* Breathing Animation */}
