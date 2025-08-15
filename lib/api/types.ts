@@ -6,6 +6,7 @@ export interface TextChunk {
   id?: string;
   content: string;
   category: string; // Using string instead of union type for flexibility
+  emotional_intensity?: 'low' | 'medium' | 'high' | null;
   pinned?: boolean;
   user_id: string;
   created_at?: string;
@@ -14,6 +15,7 @@ export interface TextChunk {
 
 export interface CategorizeRequest {
   text: string;
+  emotionalIntensity?: 'low' | 'medium' | 'high' | null;
 }
 
 export interface CategorizeResponse {

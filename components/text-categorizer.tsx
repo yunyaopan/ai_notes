@@ -27,6 +27,21 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
   const [showBreathingAnimation, setShowBreathingAnimation] = useState(false);
   const [emotionalIntensity, setEmotionalIntensity] = useState<'low' | 'medium' | 'high' | null>(null);
 
+  const handleEmotionalIntensitySelect = (intensity: 'low' | 'medium' | 'high') => {
+    setEmotionalIntensity(intensity);
+    
+    // Add text to the beginning of the text area
+    const intensityText = `I am feeling ${intensity} anxiety and worry about `;
+    
+    // If text is empty, just add the intensity text
+    // If text already exists, prepend the intensity text with a space
+    if (text.trim() === '') {
+      setText(intensityText);
+    } else {
+      setText(intensityText + text);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!text.trim() || text.length < 10) {
       alert('Please enter at least 10 characters of text.');
@@ -172,9 +187,16 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
                 className="w-full p-2 border rounded-md text-sm min-h-[80px] resize-vertical"
                 placeholder="Chunk content..."
               />
-              <Badge className={categoryColors[chunk.category]}>
-                {categoryLabels[chunk.category]}
-              </Badge>
+              <div className="flex gap-2 flex-wrap">
+                <Badge className={categoryColors[chunk.category]}>
+                  {categoryLabels[chunk.category]}
+                </Badge>
+                {chunk.emotional_intensity && (
+                  <Badge variant="outline" className="text-xs">
+                    {chunk.emotional_intensity} intensity
+                  </Badge>
+                )}
+              </div>
             </div>
           ))}
           
@@ -224,7 +246,7 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
             <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 z-0 transition-all duration-300 group">
               <div className={`transition-all duration-300 ${emotionalIntensity ? 'translate-y-0' : 'translate-y-4'} group-hover:-translate-y-1`}>
                 <GrumpyFaceSelector 
-                  onSelect={setEmotionalIntensity}
+                  onSelect={handleEmotionalIntensitySelect}
                   className="flex-shrink-0"
                 />
                 <div className={`text-center mt-2 transition-opacity duration-300 ${emotionalIntensity ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>

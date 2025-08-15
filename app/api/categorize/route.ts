@@ -25,8 +25,13 @@ export async function POST(request: NextRequest) {
 
     const chunks = await categorizeText(body.text);
     
+    // Add emotional intensity to all chunks if provided
+    const chunksWithIntensity = body.emotionalIntensity ? 
+      chunks.map(chunk => ({ ...chunk, emotional_intensity: body.emotionalIntensity })) :
+      chunks;
+    
     const response: CategorizeResponse = {
-      chunks
+      chunks: chunksWithIntensity
     };
 
     return NextResponse.json(response);
