@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { saveTextChunks, getUserTextChunks } from '@/lib/api/database';
 import { SaveChunksRequest, SaveChunksResponse } from '@/lib/api/types';
+import { getCategoryKeys } from '@/lib/config/categories';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,7 +25,8 @@ export async function POST(request: NextRequest) {
       if (!chunk.content || typeof chunk.content !== 'string') {
         return NextResponse.json({ error: 'Each chunk must have content' }, { status: 400 });
       }
-      if (!chunk.category || !['other_emotions', 'insights', 'gratitudes', 'worries_anxiety', 'other'].includes(chunk.category)) {
+      const validCategories = getCategoryKeys();
+      if (!chunk.category || !validCategories.includes(chunk.category)) {
         return NextResponse.json({ error: 'Each chunk must have a valid category' }, { status: 400 });
       }
     }

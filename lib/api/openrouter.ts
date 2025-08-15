@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { generateCategoriesPrompt } from '@/lib/config/categories';
 
 const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -10,20 +11,8 @@ const openai = new OpenAI({
 });
 
 export async function categorizeText(text: string) {
-  const prompt = `
-Separate the text into chunks based on line breaks. 
-
-Categorize the text into these categories:
-1. "other_emotions" - General emotional expressions (happiness, sadness, anger, etc.)
-2. "insights" - Realizations, learnings, or understanding gained
-3. "gratitudes" - Things the person is grateful for or appreciates
-4. "worries_anxiety" - Concerns, fears, anxious thoughts, or stress
-5. "affirmations" - Positive affirmations, self-encouragement, or positive statements
-6. "other" - Content that doesn't fit the above categories
-
-Return the result as a JSON array where each object has:
-- "content": the text chunk
-- "category": one of the five categories above
+  const categoriesPrompt = generateCategoriesPrompt();
+  const prompt = `${categoriesPrompt}
 
 Text to analyze:
 ${text}

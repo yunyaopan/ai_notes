@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS text_chunks (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     content TEXT NOT NULL,
-    category TEXT NOT NULL CHECK (category IN ('other_emotions', 'insights', 'gratitudes', 'worries_anxiety', 'other')),
+    category TEXT NOT NULL,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

@@ -6,26 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { TextChunk } from '@/lib/api/types';
+import { CATEGORIES, getCategoryLabels, getCategoryColors } from '@/lib/config/categories';
 
 interface TextCategorizerProps {
   onSave?: (chunks: TextChunk[]) => void;
 }
 
-const categoryLabels = {
-  other_emotions: 'Other Emotions',
-  insights: 'Insights',
-  gratitudes: 'Gratitudes',
-  worries_anxiety: 'Worries & Anxiety',
-  other: 'Other'
-};
-
-const categoryColors = {
-  other_emotions: 'bg-blue-100 text-blue-800',
-  insights: 'bg-green-100 text-green-800',
-  gratitudes: 'bg-yellow-100 text-yellow-800',
-  worries_anxiety: 'bg-red-100 text-red-800',
-  other: 'bg-gray-100 text-gray-800'
-};
+// Get category data from config
+const categoryLabels = getCategoryLabels();
+const categoryColors = getCategoryColors();
 
 export function TextCategorizer({ onSave }: TextCategorizerProps) {
   const [text, setText] = useState('');
@@ -135,8 +124,8 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
                   onChange={(e) => updateChunk(index, 'category', e.target.value as TextChunk['category'])}
                   className="px-3 py-1 border rounded-md text-sm"
                 >
-                  {Object.entries(categoryLabels).map(([key, label]) => (
-                    <option key={key} value={key}>{label}</option>
+                  {CATEGORIES.map((category) => (
+                    <option key={category.key} value={category.key}>{category.label}</option>
                   ))}
                 </select>
                 <Button
@@ -218,9 +207,9 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
         <div className="text-xs text-muted-foreground space-y-1">
           <p><strong>Categories:</strong></p>
           <div className="flex flex-wrap gap-1">
-            {Object.entries(categoryLabels).map(([key, label]) => (
-              <Badge key={key} variant="outline" className={categoryColors[key as keyof typeof categoryColors]}>
-                {label}
+            {CATEGORIES.map((category) => (
+              <Badge key={category.key} variant="outline" className={category.color}>
+                {category.label}
               </Badge>
             ))}
           </div>

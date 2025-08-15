@@ -4,22 +4,9 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TextChunk } from '@/lib/api/types';
+import { CATEGORIES } from '@/lib/config/categories';
 
-const categoryLabels = {
-  other_emotions: 'Other Emotions',
-  insights: 'Insights',
-  gratitudes: 'Gratitudes',
-  worries_anxiety: 'Worries & Anxiety',
-  other: 'Other'
-};
-
-const categoryColors = {
-  other_emotions: 'bg-blue-100 text-blue-800',
-  insights: 'bg-green-100 text-green-800',
-  gratitudes: 'bg-yellow-100 text-yellow-800',
-  worries_anxiety: 'bg-red-100 text-red-800',
-  other: 'bg-gray-100 text-gray-800'
-};
+// Category data is now accessed directly from CATEGORIES array
 
 interface SavedChunksProps {
   refreshTrigger?: number;
@@ -107,16 +94,16 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
         <CardTitle>Your Saved Chunks ({chunks.length})</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {Object.entries(categoryLabels).map(([category, label]) => {
-          const categoryChunks = groupedChunks[category] || [];
+        {CATEGORIES.map((categoryConfig) => {
+          const categoryChunks = groupedChunks[categoryConfig.key] || [];
           
           if (categoryChunks.length === 0) return null;
           
           return (
-            <div key={category} className="space-y-3">
+            <div key={categoryConfig.key} className="space-y-3">
               <div className="flex items-center gap-2">
-                <Badge className={categoryColors[category as keyof typeof categoryColors]}>
-                  {label}
+                <Badge className={categoryConfig.color}>
+                  {categoryConfig.label}
                 </Badge>
                 <span className="text-sm text-muted-foreground">
                   ({categoryChunks.length})

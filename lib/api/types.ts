@@ -1,7 +1,11 @@
+import { CATEGORIES } from '@/lib/config/categories';
+
+export type CategoryKey = typeof CATEGORIES[number]['key'];
+
 export interface TextChunk {
   id?: string;
   content: string;
-  category: 'other_emotions' | 'insights' | 'gratitudes' | 'worries_anxiety' | 'other';
+  category: string; // Using string instead of union type for flexibility
   user_id: string;
   created_at?: string;
   updated_at?: string;
