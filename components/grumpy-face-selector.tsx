@@ -9,71 +9,19 @@ interface GrumpyFaceSelectorProps {
 }
 
 export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelectorProps) {
-  const [isSelecting, setIsSelecting] = useState(false);
-  const [hoveredIntensity, setHoveredIntensity] = useState<'low' | 'medium' | 'high' | null>(null);
+  const [showSelector, setShowSelector] = useState(false);
 
-  const handleFaceMouseDown = (intensity: 'low' | 'medium' | 'high') => {
-    setIsSelecting(true);
-    setHoveredIntensity(intensity);
+  const handleMainFaceClick = () => {
+    setShowSelector(true);
   };
 
-  const handleFaceMouseEnter = (intensity: 'low' | 'medium' | 'high') => {
-    if (isSelecting) {
-      setHoveredIntensity(intensity);
-    }
+  const handleFaceSelect = (intensity: 'low' | 'medium' | 'high') => {
+    onSelect?.(intensity);
+    setShowSelector(false);
   };
 
-  const handleFaceMouseLeave = () => {
-    if (isSelecting) {
-      setHoveredIntensity(null);
-    }
-  };
-
-  // Handle touch move to detect which face is being touched
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isSelecting) return;
-    
-    e.preventDefault();
-    const touch = e.touches[0];
-    
-    // Get element at touch position
-    const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-    
-    // Find the closest face container
-    const faceContainer = elementBelow?.closest('[data-intensity]');
-    if (faceContainer) {
-      const intensity = faceContainer.getAttribute('data-intensity') as 'low' | 'medium' | 'high';
-      setHoveredIntensity(intensity);
-    } else {
-      setHoveredIntensity(null);
-    }
-  };
-
-  const handleMouseUp = () => {
-    if (isSelecting && hoveredIntensity) {
-      onSelect?.(hoveredIntensity);
-    }
-    setIsSelecting(false);
-    setHoveredIntensity(null);
-  };
-
-  const handleMouseLeave = () => {
-    setIsSelecting(false);
-    setHoveredIntensity(null);
-  };
-
-  // Touch handlers for mobile
-  const handleFaceTouchStart = (intensity: 'low' | 'medium' | 'high') => {
-    setIsSelecting(true);
-    setHoveredIntensity(intensity);
-  };
-
-  const handleTouchEnd = () => {
-    if (isSelecting && hoveredIntensity) {
-      onSelect?.(hoveredIntensity);
-    }
-    setIsSelecting(false);
-    setHoveredIntensity(null);
+  const handleOverlayClick = () => {
+    setShowSelector(false);
   };
 
   const GrumpyFace = ({ size = 100, className = '' }: { size?: number; className?: string }) => (
@@ -111,97 +59,76 @@ export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelec
     <div className={`relative ${className}`}>
       {/* Main grumpy face */}
       <div
-        className="cursor-pointer transition-transform hover:scale-105 active:scale-95 touch-none"
-        onMouseDown={() => handleFaceMouseDown('medium')}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-        onTouchStart={() => handleFaceTouchStart('medium')}
-        onTouchEnd={handleTouchEnd}
+        className="cursor-pointer transition-transform hover:scale-105 active:scale-95"
+        onClick={handleMainFaceClick}
       >
         <GrumpyFace size={100} />
       </div>
 
       {/* Selection overlay using portal to render at document root */}
-      {isSelecting && typeof window !== 'undefined' && createPortal(
+      {showSelector && typeof window !== 'undefined' && createPortal(
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          onClick={handleOverlayClick}
         >
-          <div className="flex flex-col items-center space-y-6 max-w-sm w-full">
+          <div 
+            className="flex flex-col items-center space-y-6 max-w-sm w-full"
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking on content
+          >
             {/* Instructions */}
             <div className="text-white text-center mb-4">
               <p className="text-lg font-medium">How strongly do you feel?</p>
-              <p className="text-sm opacity-80">Drag to a face and release to select</p>
+              <p className="text-sm opacity-80">Tap a face to select intensity</p>
             </div>
 
             {/* Face selection area */}
             <div className="flex justify-center items-center w-full max-w-md mx-auto px-4 gap-4 sm:gap-8">
               {/* Low intensity - Left */}
-              <div 
-                data-intensity="low"
-                className={`flex flex-col items-center transition-all duration-200 cursor-pointer ${
-                  hoveredIntensity === 'low' ? 'scale-125' : 'scale-100'
-                }`}
-                onMouseEnter={() => handleFaceMouseEnter('low')}
-                onMouseLeave={handleFaceMouseLeave}
-                onTouchStart={() => handleFaceTouchStart('low')}
+              <button 
+                className="flex flex-col items-center transition-all duration-200 cursor-pointer hover:scale-110 active:scale-95"
+                onClick={() => handleFaceSelect('low')}
               >
-                <div className={`p-2 sm:p-3 rounded-full ${hoveredIntensity === 'low' ? 'bg-white/30' : 'bg-white/10'}`}>
+                <div className="p-4 sm:p-6 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30">
                   <GrumpyFace size={40} className="opacity-90" />
                 </div>
                 <div className="text-center text-white text-xs sm:text-sm mt-1 sm:mt-2 font-medium">
                   Low
                 </div>
-              </div>
+              </button>
 
               {/* Medium intensity - Center */}
-              <div 
-                data-intensity="medium"
-                className={`flex flex-col items-center transition-all duration-200 cursor-pointer ${
-                  hoveredIntensity === 'medium' ? 'scale-125' : 'scale-100'
-                }`}
-                onMouseEnter={() => handleFaceMouseEnter('medium')}
-                onMouseLeave={handleFaceMouseLeave}
-                onTouchStart={() => handleFaceTouchStart('medium')}
+              <button 
+                className="flex flex-col items-center transition-all duration-200 cursor-pointer hover:scale-110 active:scale-95"
+                onClick={() => handleFaceSelect('medium')}
               >
-                <div className={`p-2 sm:p-3 rounded-full ${hoveredIntensity === 'medium' ? 'bg-white/30' : 'bg-white/10'}`}>
+                <div className="p-4 sm:p-6 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30">
                   <GrumpyFace size={80} className="opacity-90" />
                 </div>
                 <div className="text-center text-white text-xs sm:text-sm mt-1 sm:mt-2 font-medium">
                   Medium
                 </div>
-              </div>
+              </button>
 
               {/* High intensity - Right */}
-              <div 
-                data-intensity="high"
-                className={`flex flex-col items-center transition-all duration-200 cursor-pointer ${
-                  hoveredIntensity === 'high' ? 'scale-125' : 'scale-100'
-                }`}
-                onMouseEnter={() => handleFaceMouseEnter('high')}
-                onMouseLeave={handleFaceMouseLeave}
-                onTouchStart={() => handleFaceTouchStart('high')}
+              <button 
+                className="flex flex-col items-center transition-all duration-200 cursor-pointer hover:scale-110 active:scale-95"
+                onClick={() => handleFaceSelect('high')}
               >
-                <div className={`p-2 sm:p-3 rounded-full ${hoveredIntensity === 'high' ? 'bg-white/30' : 'bg-white/10'}`}>
+                <div className="p-4 sm:p-6 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30">
                   <GrumpyFace size={160} className="opacity-90" />
                 </div>
                 <div className="text-center text-white text-xs sm:text-sm mt-1 sm:mt-2 font-medium">
                   High
                 </div>
-              </div>
+              </button>
             </div>
 
-            {/* Selection indicator */}
-            {hoveredIntensity && (
-              <div className="text-white text-center">
-                <p className="text-sm opacity-80">
-                  Hovering: <span className="font-medium">{hoveredIntensity}</span>
-                </p>
-              </div>
-            )}
+            {/* Help text */}
+            <div className="text-white text-center">
+              <p className="text-xs opacity-60">
+                Tap outside to close
+              </p>
+            </div>
           </div>
         </div>,
         document.body
