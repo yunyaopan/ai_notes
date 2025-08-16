@@ -7,6 +7,7 @@ export interface TextChunk {
   content: string;
   category: string; // Using string instead of union type for flexibility
   emotional_intensity?: 'low' | 'medium' | 'high' | null;
+  importance?: '1' | '2' | '3' | 'deprioritized' | null;
   pinned?: boolean;
   user_id: string;
   created_at?: string;
@@ -53,4 +54,14 @@ export interface UpdateChunkResponse {
 
 export interface DeleteChunkResponse {
   success: boolean;
+}
+
+export interface UpdateImportanceRequest {
+  chunkId: string;
+  importance: '1' | '2' | '3' | 'deprioritized' | null;
+}
+
+export interface UpdateImportanceResponse {
+  success: boolean;
+  chunk: TextChunk;
 }

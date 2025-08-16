@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { TextChunk } from '@/lib/api/types';
 import { CATEGORIES } from '@/lib/config/categories';
 import { MoreVertical, Pin, PinOff, ChevronDown, Clock, Tag, Edit, Trash2 } from 'lucide-react';
+import { IdeasPriorityOverlay } from '@/components/ideas-priority-overlay';
 
 // Category data is now accessed directly from CATEGORIES array
 
@@ -26,6 +27,7 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
   const [editingChunk, setEditingChunk] = useState<TextChunk | null>(null);
   const [editContent, setEditContent] = useState('');
   const [editCategory, setEditCategory] = useState('');
+  const [showIdeasOverlay, setShowIdeasOverlay] = useState(false);
 
   const handleTogglePin = async (chunkId: string, currentlyPinned: boolean) => {
     try {
@@ -117,6 +119,45 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
       console.error('Error deleting chunk:', error);
       alert(error instanceof Error ? error.message : 'Failed to delete chunk');
     }
+  };
+
+  const handleImportanceUpdate = async (chunkId: string, importance: '1' | '2' | '3' | 'deprioritized' | null) => {
+    try {
+      // Update local state immediately for responsive UI
+      setChunks(prev => 
+        prev.map(chunk => 
+          chunk.id === chunkId 
+            ? { ...chunk, importance } 
+            : chunk
+        )
+      );
+
+      // Make API call in background
+      const response = await fetch('/api/chunks/importance', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ chunkId, importance }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update importance');
+      }
+
+      // API call succeeded, state is already updated
+    } catch (error) {
+      console.error('Error updating importance:', error);
+      alert(error instanceof Error ? error.message : 'Failed to update importance');
+      
+      // Revert the optimistic update on error
+      fetchChunks();
+    }
+  };
+
+  const handleIdeasClick = () => {
+    setShowIdeasOverlay(true);
   };
 
   const fetchChunks = async () => {
@@ -270,9 +311,20 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                           )}
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <Badge className={categoryConfig?.color || 'bg-gray-100 text-gray-800'} variant="outline">
+                              <Badge 
+                                className={`${categoryConfig?.color || 'bg-gray-100 text-gray-800'} ${
+                                  chunk.category === 'ideas' ? 'cursor-pointer hover:opacity-80' : ''
+                                }`} 
+                                variant="outline"
+                                onClick={chunk.category === 'ideas' ? handleIdeasClick : undefined}
+                              >
                                 {categoryConfig?.label || chunk.category}
                               </Badge>
+                              {chunk.importance && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {chunk.importance === 'deprioritized' ? 'Later' : `#${chunk.importance}`}
+                                </Badge>
+                              )}
                             </div>
                             <p className="text-sm leading-relaxed">{chunk.content}</p>
                           </div>
@@ -348,7 +400,12 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
             return (
               <div key={categoryConfig.key} className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Badge className={categoryConfig.color}>
+                  <Badge 
+                    className={`${categoryConfig.color} ${
+                      categoryConfig.key === 'ideas' ? 'cursor-pointer hover:opacity-80' : ''
+                    }`}
+                    onClick={categoryConfig.key === 'ideas' ? handleIdeasClick : undefined}
+                  >
                     {categoryConfig.label}
                   </Badge>
                   <span className="text-sm text-muted-foreground">
@@ -480,6 +537,14 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
           </div>
         </div>
       )}
+
+      {/* Ideas Priority Overlay */}
+      <IdeasPriorityOverlay
+        isOpen={showIdeasOverlay}
+        onClose={() => setShowIdeasOverlay(false)}
+        ideas={chunks.filter(chunk => chunk.category === 'ideas')}
+        onImportanceUpdate={handleImportanceUpdate}
+      />
     </Card>
   );
 }
