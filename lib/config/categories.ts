@@ -87,12 +87,10 @@ export const generateCategoriesPrompt = () => {
     `${index + 1}. "${category.key}" - ${category.description}`
   ).join('\n');
   
-  return `Please separate the text into chunks based on line breaks. 
-
-Then categorize the text into these categories:
+  return `Categorize the text into these categories:
 ${categoriesList}
 
-Return the result as a JSON array where each object has:
-- "content": the text chunk
+Return the result as a JSON array which only contains one object:
+- "content": the originaltext chunk
 - "category": one of the categories above`;
 };
