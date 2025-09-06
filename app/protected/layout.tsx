@@ -16,6 +16,14 @@ export default function ProtectedLayout({
           <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
             <div className="flex gap-5 items-center font-semibold">
               <Link href={"/"}>Gooday</Link>
+              <div className="flex gap-3">
+                <Link href={"/protected"} className="text-sm hover:underline">
+                  write
+                </Link>
+                <Link href={"/fade"} className="text-sm hover:underline">
+                  feel
+                </Link>
+              </div>
             </div>
             {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
           </div>
