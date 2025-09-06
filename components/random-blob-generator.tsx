@@ -23,7 +23,7 @@ export default function RandomBlobGenerator() {
   const [size] = useState(defaultState.size);
   const [colorA, setColorA] = useState(defaultState.colorA);
   const [colorB, setColorB] = useState(defaultState.colorB);
-  const [seededBlob, setSeededBlob] = useState(null);
+  const [seededBlob, setSeededBlob] = useState<string | null>(null);
   const [controlsOpen, setControlsOpen] = useState(defaultState.controlsOpen);
   const [blobScale, setBlobScale] = useState(1);
   const [blobOpacity, setBlobOpacity] = useState(1);
@@ -34,7 +34,7 @@ export default function RandomBlobGenerator() {
 
   const svgRef = useRef(null);
 
-  function mulberry32(a) {
+  function mulberry32(a: number) {
     return function () {
       let t = (a += 0x6d2b79f5);
       t = Math.imul(t ^ (t >>> 15), t | 1);
@@ -43,7 +43,7 @@ export default function RandomBlobGenerator() {
     };
   }
 
-  function generatePoints(seedVal, count, rad, jitter) {
+  function generatePoints(seedVal: number, count: number, rad: number, jitter: number) {
     const rng = mulberry32(seedVal);
     const pts = [];
     for (let i = 0; i < count; i++) {
@@ -55,11 +55,11 @@ export default function RandomBlobGenerator() {
     return pts;
   }
 
-  function catmullRom2bezier(points) {
+  function catmullRom2bezier(points: number[][]) {
     const d = points;
     const size = d.length;
     if (size < 2) return "";
-    const get = (i) => d[(i + size) % size];
+    const get = (i: number) => d[(i + size) % size];
 
     let path = "";
     const p0 = get(0);
@@ -83,10 +83,10 @@ export default function RandomBlobGenerator() {
     return path;
   }
 
-  function chaikin(points, iterations = 2) {
+  function chaikin(points: number[][], iterations = 2) {
     let pts = points.map((p) => p.slice());
     for (let it = 0; it < iterations; it++) {
-      const newPts = [];
+      const newPts: number[][] = [];
       const n = pts.length;
       for (let i = 0; i < n; i++) {
         const p0 = pts[i];
@@ -100,7 +100,7 @@ export default function RandomBlobGenerator() {
     return pts;
   }
 
-  const buildPath = React.useCallback((seedVal) => {
+  const buildPath = React.useCallback((seedVal: number) => {
     const rad = size / 2 - 10;
     const raw = generatePoints(seedVal, points, rad, randomness);
     const smooth = chaikin(raw, 2);
@@ -111,19 +111,72 @@ export default function RandomBlobGenerator() {
     setSeededBlob(buildPath(seed));
   }, [seed, buildPath]);
 
-  function getRandomColor() {
-    const letters = "0123456789ABCDEF";
-    let color = "#";
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
+  // Convert HSL to RGB
+  function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+    h /= 360;
+    s /= 100;
+    l /= 100;
+    
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((h * 6) % 2 - 1));
+    const m = l - c / 2;
+    
+    let r = 0, g = 0, b = 0;
+    
+    if (0 <= h && h < 1/6) {
+      r = c; g = x; b = 0;
+    } else if (1/6 <= h && h < 2/6) {
+      r = x; g = c; b = 0;
+    } else if (2/6 <= h && h < 3/6) {
+      r = 0; g = c; b = x;
+    } else if (3/6 <= h && h < 4/6) {
+      r = 0; g = x; b = c;
+    } else if (4/6 <= h && h < 5/6) {
+      r = x; g = 0; b = c;
+    } else if (5/6 <= h && h < 1) {
+      r = c; g = 0; b = x;
     }
-    return color;
+    
+    return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+  }
+  
+  // Convert RGB to hex
+  function rgbToHex(r: number, g: number, b: number): string {
+    return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+  }
+  
+  function getRandomColorPair() {
+    // Generate base hue (0-360)
+    const baseHue = Math.random() * 360;
+    
+    // Generate hue difference between 20-40 degrees
+    const hueDifference = 40 + Math.random() * 40; // 20-40 degrees
+    
+    // Determine which color gets the base hue and which gets the offset
+    const firstHue = baseHue;
+    const secondHue = (baseHue + hueDifference) % 360;
+    
+    // Generate saturation (30-70% to avoid oversaturation)
+    const saturation = 30 + Math.random() * 40; // 30-70%
+    
+    // Generate lightness (40-80% for good contrast)
+    const lightness = 20 + Math.random() * 40; // 40-80%
+    
+    // Create both colors with same saturation and lightness for harmony
+    const [r1, g1, b1] = hslToRgb(firstHue, saturation, lightness);
+    const [r2, g2, b2] = hslToRgb(secondHue, saturation, lightness);
+    
+    return {
+      colorA: rgbToHex(r1, g1, b1),
+      colorB: rgbToHex(r2, g2, b2)
+    };
   }
 
   function handleNewBlob() {
     setSeed(Math.floor(Math.random() * 1e9));
-    setColorA(getRandomColor());
-    setColorB(getRandomColor());
+    const { colorA: newColorA, colorB: newColorB } = getRandomColorPair();
+    setColorA(newColorA);
+    setColorB(newColorB);
     setBlobScale(1);
     setBlobOpacity(1);
   }
