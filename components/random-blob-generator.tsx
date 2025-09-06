@@ -160,7 +160,7 @@ export default function RandomBlobGenerator() {
     const saturation = 30 + Math.random() * 40; // 30-70%
     
     // Generate lightness (40-80% for good contrast)
-    const lightness = 20 + Math.random() * 40; // 40-80%
+    const lightness = 40 + Math.random() * 40; // 40-80%
     
     // Create both colors with same saturation and lightness for harmony
     const [r1, g1, b1] = hslToRgb(firstHue, saturation, lightness);
@@ -210,14 +210,15 @@ export default function RandomBlobGenerator() {
   }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto text-center">
-      <div className="w-[600px] h-[600px] relative mx-auto">
+    <div className="p-2 sm:p-4 max-w-3xl mx-auto text-center">
+      <div className="w-full max-w-[600px] aspect-square relative mx-auto">
         <svg
           ref={svgRef}
           viewBox={`${-size / 2} ${-size / 2} ${size} ${size}`}
-          width={size}
-          height={size}
+          width="100%"
+          height="100%"
           xmlns="http://www.w3.org/2000/svg"
+          className="w-full h-full"
         >
           <defs>
             <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -235,31 +236,69 @@ export default function RandomBlobGenerator() {
         </svg>
       </div>
 
-      <div className="mt-6 flex flex-wrap justify-center gap-3">
-        <button className="btn px-4 py-2 rounded shadow bg-gradient-to-r from-indigo-500 to-cyan-400 text-white" onClick={handleNewBlob}>
+      <div className="mt-2 sm:mt-4 flex flex-wrap justify-center gap-2 sm:gap-3">
+        <button className="btn px-3 sm:px-4 py-2 rounded shadow bg-gradient-to-r from-indigo-500 to-cyan-400 text-white text-sm sm:text-base" onClick={handleNewBlob}>
           New Blob
         </button>
-        <button className="btn px-4 py-2 rounded shadow bg-[#22d3ee] text-white" onClick={handleFadeAway}>
+        <button className="btn px-3 sm:px-4 py-2 rounded shadow bg-[#22d3ee] text-white text-sm sm:text-base" onClick={handleFadeAway}>
           Fade Away
         </button>
-        <button className="btn px-4 py-2 rounded shadow border" onClick={() => setControlsOpen((o) => !o)}>
+        <button className="btn px-3 sm:px-4 py-2 rounded shadow border text-sm sm:text-base" onClick={() => setControlsOpen((o) => !o)}>
           {controlsOpen ? "Hide Controls" : "Show Controls"}
         </button>
       </div>
 
       {controlsOpen && (
-        <div className="mt-4 p-4 border rounded-md text-left inline-block">
-          <label className="block text-xs font-medium">Fade Cycles</label>
-          <input type="number" min={1} value={fadeCycles} onChange={e => setFadeCycles(Number(e.target.value))} className="input input-sm p-2" />
+        <div className="mt-4 p-3 sm:p-4 border rounded-md text-left w-full max-w-md mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div>
+              <label className="block text-xs font-medium mb-1">Fade Cycles</label>
+              <input 
+                type="number" 
+                min={1} 
+                value={fadeCycles} 
+                onChange={e => setFadeCycles(Number(e.target.value))} 
+                className="w-full p-2 border rounded text-sm" 
+              />
+            </div>
 
-          <label className="block text-xs font-medium mt-2">Cycle Duration (ms)</label>
-          <input type="number" min={100} value={fadeCycleDuration} onChange={e => setFadeCycleDuration(Number(e.target.value))} className="input input-sm p-2" />
+            <div>
+              <label className="block text-xs font-medium mb-1">Cycle Duration (ms)</label>
+              <input 
+                type="number" 
+                min={100} 
+                value={fadeCycleDuration} 
+                onChange={e => setFadeCycleDuration(Number(e.target.value))} 
+                className="w-full p-2 border rounded text-sm" 
+              />
+            </div>
 
-          <label className="block text-xs font-medium mt-2">Shrink Ratio</label>
-          <input type="number" step={0.01} min={0} max={1} value={shrinkRatio} onChange={e => setShrinkRatio(Number(e.target.value))} className="input input-sm p-2" />
+            <div>
+              <label className="block text-xs font-medium mb-1">Shrink Ratio</label>
+              <input 
+                type="number" 
+                step={0.01} 
+                min={0} 
+                max={1} 
+                value={shrinkRatio} 
+                onChange={e => setShrinkRatio(Number(e.target.value))} 
+                className="w-full p-2 border rounded text-sm" 
+              />
+            </div>
 
-          <label className="block text-xs font-medium mt-2">Grow Ratio</label>
-          <input type="number" step={0.01} min={0} max={1} value={growRatio} onChange={e => setGrowRatio(Number(e.target.value))} className="input input-sm p-2" />
+            <div>
+              <label className="block text-xs font-medium mb-1">Grow Ratio</label>
+              <input 
+                type="number" 
+                step={0.01} 
+                min={0} 
+                max={1} 
+                value={growRatio} 
+                onChange={e => setGrowRatio(Number(e.target.value))} 
+                className="w-full p-2 border rounded text-sm" 
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>
