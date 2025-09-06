@@ -18,9 +18,9 @@ export default function RandomBlobGenerator() {
   };
 
   const [seed, setSeed] = useState(defaultState.seed);
-  const [points, setPoints] = useState(defaultState.points);
-  const [randomness, setRandomness] = useState(defaultState.randomness);
-  const [size, setSize] = useState(defaultState.size);
+  const [points] = useState(defaultState.points);
+  const [randomness] = useState(defaultState.randomness);
+  const [size] = useState(defaultState.size);
   const [colorA, setColorA] = useState(defaultState.colorA);
   const [colorB, setColorB] = useState(defaultState.colorB);
   const [seededBlob, setSeededBlob] = useState(null);
@@ -36,7 +36,7 @@ export default function RandomBlobGenerator() {
 
   function mulberry32(a) {
     return function () {
-      var t = (a += 0x6d2b79f5);
+      let t = (a += 0x6d2b79f5);
       t = Math.imul(t ^ (t >>> 15), t | 1);
       t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -100,16 +100,16 @@ export default function RandomBlobGenerator() {
     return pts;
   }
 
-  function buildPath(seedVal) {
+  const buildPath = React.useCallback((seedVal) => {
     const rad = size / 2 - 10;
     const raw = generatePoints(seedVal, points, rad, randomness);
     const smooth = chaikin(raw, 2);
     return catmullRom2bezier(smooth);
-  }
+  }, [size, points, randomness]);
 
   useEffect(() => {
     setSeededBlob(buildPath(seed));
-  }, [seed, points, randomness, size]);
+  }, [seed, buildPath]);
 
   function getRandomColor() {
     const letters = "0123456789ABCDEF";
