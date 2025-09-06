@@ -16,12 +16,6 @@ export function ProtectedContent() {
   return (
     <div className="flex-1 w-full flex flex-col gap-8 max-w-4xl mx-auto">
         <PinnedChunk refreshTrigger={refreshTrigger} />
-        <div>
-          <h1 className="font-bold text-3xl mb-2">AI Text Categorizer</h1>
-          <p className="text-muted-foreground">
-            Share your thoughts and let AI help organize them into meaningful categories.
-          </p>
-        </div>
 
         <TextCategorizer onSave={handleChunksSaved} />
         
