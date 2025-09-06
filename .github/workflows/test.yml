@@ -87,3 +87,5 @@ jobs:
         name: playwright-report
         path: my-app/playwright-report/
         retention-days: 30
+
+

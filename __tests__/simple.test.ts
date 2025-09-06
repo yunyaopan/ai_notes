@@ -13,3 +13,5 @@ describe('Basic Test Setup', () => {
     expect(process.env.NEXT_PUBLIC_SUPABASE_URL).toBe('http://localhost:54321');
   });
 });
+
+

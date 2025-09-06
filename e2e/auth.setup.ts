@@ -22,3 +22,5 @@ setup('authenticate', async ({ page }) => {
   // End of authentication steps.
   await page.context().storageState({ path: authFile });
 });
+
+
