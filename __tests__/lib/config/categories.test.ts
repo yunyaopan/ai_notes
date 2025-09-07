@@ -1,4 +1,4 @@
-import { CATEGORIES, getCategoryLabels, getCategoryColors, getCategoryKeys, generateCategoriesPrompt } from '@/lib/config/categories';
+import { CATEGORIES, getCategoryLabels, getCategoryColors, getCategoryKeys, getRankableCategories, isCategoryRankable, generateCategoriesPrompt } from '@/lib/config/categories';
 
 describe('Categories Configuration', () => {
   describe('CATEGORIES constant', () => {
@@ -32,7 +32,23 @@ describe('Categories Configuration', () => {
       expect(keys).toContain('ideas');
       expect(keys).toContain('worries_anxiety');
       expect(keys).toContain('insights');
+      expect(keys).toContain('questions');
       expect(keys).toContain('other');
+    });
+
+    it('should have rankable categories configured', () => {
+      const rankableCategories = getRankableCategories();
+      expect(rankableCategories.length).toBeGreaterThan(0);
+      
+      // Check that ideas is rankable
+      expect(isCategoryRankable('ideas')).toBe(true);
+      expect(isCategoryRankable('questions')).toBe(true);
+      expect(isCategoryRankable('experiments')).toBe(true);
+      expect(isCategoryRankable('wish')).toBe(true);
+      
+      // Check that some categories are not rankable
+      expect(isCategoryRankable('other_emotions')).toBe(false);
+      expect(isCategoryRankable('gratitudes')).toBe(false);
     });
   });
 
@@ -77,6 +93,39 @@ describe('Categories Configuration', () => {
       CATEGORIES.forEach(category => {
         expect(keys).toContain(category.key);
       });
+    });
+  });
+
+  describe('getRankableCategories', () => {
+    it('should return only rankable categories', () => {
+      const rankableCategories = getRankableCategories();
+      expect(Array.isArray(rankableCategories)).toBe(true);
+      
+      // All returned categories should be rankable
+      rankableCategories.forEach(category => {
+        expect(category.rankable).toBe(true);
+      });
+    });
+  });
+
+  describe('isCategoryRankable', () => {
+    it('should correctly identify rankable categories', () => {
+      expect(isCategoryRankable('ideas')).toBe(true);
+      expect(isCategoryRankable('questions')).toBe(true);
+      expect(isCategoryRankable('experiments')).toBe(true);
+      expect(isCategoryRankable('wish')).toBe(true);
+    });
+
+    it('should correctly identify non-rankable categories', () => {
+      expect(isCategoryRankable('other_emotions')).toBe(false);
+      expect(isCategoryRankable('gratitudes')).toBe(false);
+      expect(isCategoryRankable('worries_anxiety')).toBe(false);
+      expect(isCategoryRankable('insights')).toBe(false);
+    });
+
+    it('should return false for non-existent categories', () => {
+      expect(isCategoryRankable('non_existent')).toBe(false);
+      expect(isCategoryRankable('')).toBe(false);
     });
   });
 

@@ -3,6 +3,7 @@ export interface CategoryConfig {
   label: string;
   description: string;
   color: string;
+  rankable?: boolean; // Whether this category supports ranking/priority
 }
 
 export const CATEGORIES: CategoryConfig[] = [
@@ -40,19 +41,29 @@ export const CATEGORIES: CategoryConfig[] = [
     key: 'ideas',
     label: 'Ideas',
     description: 'Product Ideas, Business Ideas',
-    color: 'bg-purple-100 text-purple-800'
+    color: 'bg-purple-100 text-purple-800',
+    rankable: true
   },
   {
     key: 'experiments',
     label: 'Experiments',
     description: 'Self Experiments, Trials',
-    color: 'bg-orange-100 text-orange-800'
+    color: 'bg-orange-100 text-orange-800',
+    rankable: true
   },
   {
     key: 'wish',
     label: 'Wishes',
     description: 'Wishes, Dreams, Desires',
-    color: 'bg-pink-100 text-pink-800'
+    color: 'bg-pink-100 text-pink-800',
+    rankable: true
+  },
+  {
+    key: 'questions',
+    label: 'Questions',
+    description: 'Questions, inquiries, or things the person is wondering about',
+    color: 'bg-indigo-100 text-indigo-800',
+    rankable: true
   },
   {
     key: 'other',
@@ -79,6 +90,15 @@ export const getCategoryColors = () => {
 
 export const getCategoryKeys = () => {
   return CATEGORIES.map(category => category.key);
+};
+
+export const getRankableCategories = () => {
+  return CATEGORIES.filter(category => category.rankable);
+};
+
+export const isCategoryRankable = (categoryKey: string) => {
+  const category = CATEGORIES.find(cat => cat.key === categoryKey);
+  return category?.rankable || false;
 };
 
 // Generate prompt text for AI categorization

@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label';
 import { TextChunk } from '@/lib/api/types';
 import { CATEGORIES } from '@/lib/config/categories';
 import { MoreVertical, Pin, PinOff, ChevronDown, Clock, Tag, Edit, Trash2 } from 'lucide-react';
-import { IdeasPriorityOverlay } from '@/components/ideas-priority-overlay';
+import { PriorityOverlay } from '@/components/priority-overlay';
+import { isCategoryRankable, getRankableCategories } from '@/lib/config/categories';
 
 // Category data is now accessed directly from CATEGORIES array
 
@@ -27,7 +28,8 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
   const [editingChunk, setEditingChunk] = useState<TextChunk | null>(null);
   const [editContent, setEditContent] = useState('');
   const [editCategory, setEditCategory] = useState('');
-  const [showIdeasOverlay, setShowIdeasOverlay] = useState(false);
+  const [showPriorityOverlay, setShowPriorityOverlay] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
 
   const handleTogglePin = async (chunkId: string, currentlyPinned: boolean) => {
     try {
@@ -156,8 +158,11 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
     }
   };
 
-  const handleIdeasClick = () => {
-    setShowIdeasOverlay(true);
+  const handleCategoryClick = (categoryKey: string) => {
+    if (isCategoryRankable(categoryKey)) {
+      setSelectedCategory(categoryKey);
+      setShowPriorityOverlay(true);
+    }
   };
 
   const fetchChunks = async () => {
@@ -251,7 +256,27 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
     <Card className="w-full">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Your Saved Chunks ({chunks.length})</CardTitle>
+          <div className="flex items-center gap-4">
+            <CardTitle>Your Saved Chunks ({chunks.length})</CardTitle>
+            <div className="flex gap-2">
+              {getRankableCategories().map((category) => {
+                const categoryChunks = chunks.filter(chunk => chunk.category === category.key);
+                if (categoryChunks.length === 0) return null;
+                
+                return (
+                  <Button
+                    key={category.key}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCategoryClick(category.key)}
+                    className="text-xs"
+                  >
+                    Review {category.label} ({categoryChunks.length})
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">
@@ -313,10 +338,10 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                             <div className="flex items-center gap-2 mb-1">
                               <Badge 
                                 className={`${categoryConfig?.color || 'bg-gray-100 text-gray-800'} ${
-                                  chunk.category === 'ideas' ? 'cursor-pointer hover:opacity-80' : ''
+                                  isCategoryRankable(chunk.category) ? 'cursor-pointer hover:opacity-80' : ''
                                 }`} 
                                 variant="outline"
-                                onClick={chunk.category === 'ideas' ? handleIdeasClick : undefined}
+                                onClick={isCategoryRankable(chunk.category) ? () => handleCategoryClick(chunk.category) : undefined}
                               >
                                 {categoryConfig?.label || chunk.category}
                               </Badge>
@@ -402,9 +427,9 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                 <div className="flex items-center gap-2">
                   <Badge 
                     className={`${categoryConfig.color} ${
-                      categoryConfig.key === 'ideas' ? 'cursor-pointer hover:opacity-80' : ''
+                      isCategoryRankable(categoryConfig.key) ? 'cursor-pointer hover:opacity-80' : ''
                     }`}
-                    onClick={categoryConfig.key === 'ideas' ? handleIdeasClick : undefined}
+                    onClick={isCategoryRankable(categoryConfig.key) ? () => handleCategoryClick(categoryConfig.key) : undefined}
                   >
                     {categoryConfig.label}
                   </Badge>
@@ -538,11 +563,12 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
         </div>
       )}
 
-      {/* Ideas Priority Overlay */}
-      <IdeasPriorityOverlay
-        isOpen={showIdeasOverlay}
-        onClose={() => setShowIdeasOverlay(false)}
-        ideas={chunks.filter(chunk => chunk.category === 'ideas')}
+      {/* Priority Overlay */}
+      <PriorityOverlay
+        isOpen={showPriorityOverlay}
+        onClose={() => setShowPriorityOverlay(false)}
+        categoryKey={selectedCategory}
+        chunks={chunks.filter(chunk => chunk.category === selectedCategory)}
         onImportanceUpdate={handleImportanceUpdate}
       />
     </Card>
