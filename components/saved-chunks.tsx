@@ -30,6 +30,7 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
   const [editCategory, setEditCategory] = useState('');
   const [showPriorityOverlay, setShowPriorityOverlay] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
 
   const handleTogglePin = async (chunkId: string, currentlyPinned: boolean) => {
     try {
@@ -162,6 +163,39 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
     if (isCategoryRankable(categoryKey)) {
       setSelectedCategory(categoryKey);
       setShowPriorityOverlay(true);
+    }
+  };
+
+  const handleQuickCategoryChange = async (chunkId: string, newCategory: string) => {
+    try {
+      const response = await fetch(`/api/chunks/${chunkId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          category: newCategory
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update category');
+      }
+
+      // Update local state immediately for responsive UI
+      setChunks(prev => 
+        prev.map(chunk => 
+          chunk.id === chunkId 
+            ? { ...chunk, category: newCategory } 
+            : chunk
+        )
+      );
+
+      setEditingCategory(null);
+    } catch (error) {
+      console.error('Error updating category:', error);
+      alert(error instanceof Error ? error.message : 'Failed to update category');
     }
   };
 
@@ -336,15 +370,35 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                           )}
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <Badge 
-                                className={`${categoryConfig?.color || 'bg-gray-100 text-gray-800'} ${
-                                  isCategoryRankable(chunk.category) ? 'cursor-pointer hover:opacity-80' : ''
-                                }`} 
-                                variant="outline"
-                                onClick={isCategoryRankable(chunk.category) ? () => handleCategoryClick(chunk.category) : undefined}
-                              >
-                                {categoryConfig?.label || chunk.category}
-                              </Badge>
+                              {editingCategory === chunk.id ? (
+                                <select
+                                  value={chunk.category}
+                                  onChange={(e) => handleQuickCategoryChange(chunk.id!, e.target.value)}
+                                  onBlur={() => setEditingCategory(null)}
+                                  className="px-2 py-1 text-xs border rounded-md bg-background"
+                                  autoFocus
+                                >
+                                  {CATEGORIES.map((category) => (
+                                    <option key={category.key} value={category.key}>
+                                      {category.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <Badge 
+                                  className={`${categoryConfig?.color || 'bg-gray-100 text-gray-800'} cursor-pointer hover:opacity-80`} 
+                                  variant="outline"
+                                  onClick={() => {
+                                    if (isCategoryRankable(chunk.category)) {
+                                      handleCategoryClick(chunk.category);
+                                    } else {
+                                      setEditingCategory(chunk.id!);
+                                    }
+                                  }}
+                                >
+                                  {categoryConfig?.label || chunk.category}
+                                </Badge>
+                              )}
                               {chunk.importance && (
                                 <Badge variant="secondary" className="text-xs">
                                   {chunk.importance === 'deprioritized' ? 'Later' : `#${chunk.importance}`}

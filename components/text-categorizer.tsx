@@ -22,8 +22,6 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
   const [text, setText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [chunks, setChunks] = useState<Omit<TextChunk, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]>([]);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [showBreathingAnimation, setShowBreathingAnimation] = useState(false);
   const [emotionalIntensity, setEmotionalIntensity] = useState<'low' | 'medium' | 'high' | null>(null);
 
@@ -50,7 +48,8 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
 
     setIsProcessing(true);
     try {
-      const response = await fetch('/api/categorize', {
+      // First, categorize the text
+      const categorizeResponse = await fetch('/api/categorize', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -61,51 +60,40 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
         }),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
+      if (!categorizeResponse.ok) {
+        const error = await categorizeResponse.json();
         throw new Error(error.error || 'Failed to categorize text');
       }
 
-      const data = await response.json();
-      setChunks(data.chunks);
-      setShowConfirmation(true);
-    } catch (error) {
-      console.error('Error categorizing text:', error);
-      alert(error instanceof Error ? error.message : 'Failed to categorize text. Please try again.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+      const categorizeData = await categorizeResponse.json();
+      const categorizedChunks = categorizeData.chunks;
 
-  const handleConfirm = async () => {
-    setIsSaving(true);
-    try {
-      const response = await fetch('/api/chunks', {
+      // Then immediately save the chunks
+      const saveResponse = await fetch('/api/chunks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ chunks }),
+        body: JSON.stringify({ chunks: categorizedChunks }),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
+      if (!saveResponse.ok) {
+        const error = await saveResponse.json();
         throw new Error(error.error || 'Failed to save chunks');
       }
 
-      const data = await response.json();
+      const saveData = await saveResponse.json();
       
       // Check if any chunks are worries_anxiety category
-      const hasWorryChunks = chunks.some(chunk => chunk.category === 'worries_anxiety');
+      const hasWorryChunks = categorizedChunks.some((chunk: any) => chunk.category === 'worries_anxiety');
       
       // Reset form
       setText('');
       setChunks([]);
-      setShowConfirmation(false);
       setEmotionalIntensity(null);
       
       if (onSave) {
-        onSave(data.chunks);
+        onSave(saveData.chunks);
       }
       
       // Show breathing animation if there were worry/anxiety chunks
@@ -113,10 +101,10 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
         setShowBreathingAnimation(true);
       }
     } catch (error) {
-      console.error('Error saving chunks:', error);
-      alert(error instanceof Error ? error.message : 'Failed to save chunks. Please try again.');
+      console.error('Error processing text:', error);
+      alert(error instanceof Error ? error.message : 'Failed to process text. Please try again.');
     } finally {
-      setIsSaving(false);
+      setIsProcessing(false);
     }
   };
 
@@ -124,107 +112,6 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
     setShowBreathingAnimation(false);
   };
 
-  const handleEdit = () => {
-    setShowConfirmation(false);
-  };
-
-  const updateChunk = (index: number, field: 'content' | 'category', value: string) => {
-    const updatedChunks = [...chunks];
-    updatedChunks[index] = { ...updatedChunks[index], [field]: value };
-    setChunks(updatedChunks);
-  };
-
-  const removeChunk = (index: number) => {
-    const updatedChunks = chunks.filter((_, i) => i !== index);
-    setChunks(updatedChunks);
-  };
-
-  if (showConfirmation) {
-    return (
-      <>
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Confirm Categorization</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Review and edit the categorized chunks below. You can modify the text or change categories.
-          </p>
-          {emotionalIntensity && (
-            <div className="mt-2">
-              <Badge variant="outline" className="text-xs">
-                Emotional Intensity: {emotionalIntensity.charAt(0).toUpperCase() + emotionalIntensity.slice(1)}
-              </Badge>
-            </div>
-          )}
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {chunks.map((chunk, index) => (
-            <div key={index} className="border rounded-lg p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <select
-                  value={chunk.category}
-                  onChange={(e) => updateChunk(index, 'category', e.target.value as TextChunk['category'])}
-                  className="px-3 py-1 border rounded-md text-sm"
-                >
-                  {CATEGORIES.map((category) => (
-                    <option key={category.key} value={category.key}>{category.label}</option>
-                  ))}
-                </select>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => removeChunk(index)}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  Remove
-                </Button>
-              </div>
-              <textarea
-                value={chunk.content}
-                onChange={(e) => updateChunk(index, 'content', e.target.value)}
-                className="w-full p-2 border rounded-md text-sm min-h-[80px] resize-vertical"
-                placeholder="Chunk content..."
-              />
-              <div className="flex gap-2 flex-wrap">
-                <Badge className={categoryColors[chunk.category]}>
-                  {categoryLabels[chunk.category]}
-                </Badge>
-                {chunk.emotional_intensity && (
-                  <Badge variant="outline" className="text-xs">
-                    {chunk.emotional_intensity} intensity
-                  </Badge>
-                )}
-              </div>
-            </div>
-          ))}
-          
-          {chunks.length === 0 && (
-            <p className="text-center text-muted-foreground py-8">
-              No chunks to display. Please go back and try again.
-            </p>
-          )}
-
-          <div className="flex gap-2 pt-4">
-            <Button onClick={handleEdit} variant="outline" className="flex-1">
-              Edit Text
-            </Button>
-            <Button 
-              onClick={handleConfirm} 
-              disabled={isSaving || chunks.length === 0}
-              className="flex-1"
-            >
-              {isSaving ? 'Saving...' : 'Save Chunks'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* Breathing Animation */}
-      {showBreathingAnimation && (
-        <BreathingAnimation onComplete={handleBreathingComplete} />
-      )}
-      </>
-    );
-  }
 
   return (
     <>
@@ -279,7 +166,7 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
           disabled={isProcessing || text.length < 10}
           className="w-full"
         >
-          {isProcessing ? 'Processing...' : 'Categorize Text'}
+          {isProcessing ? 'Processing...' : 'Submit'}
         </Button>
 
       </CardContent>
