@@ -111,8 +111,6 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
       // Show breathing animation if there were worry/anxiety chunks
       if (hasWorryChunks) {
         setShowBreathingAnimation(true);
-      } else {
-        alert('Text chunks saved successfully!');
       }
     } catch (error) {
       console.error('Error saving chunks:', error);
@@ -124,7 +122,6 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
 
   const handleBreathingComplete = () => {
     setShowBreathingAnimation(false);
-    alert('Text chunks saved successfully! Take care of yourself. 💙');
   };
 
   const handleEdit = () => {
