@@ -105,7 +105,7 @@ export default function RandomBlobGenerator() {
     const raw = generatePoints(seedVal, points, rad, randomness);
     const smooth = chaikin(raw, 2);
     return catmullRom2bezier(smooth);
-  }, [size, points, randomness]);
+  }, [size, points, randomness, generatePoints]);
 
   useEffect(() => {
     setSeededBlob(buildPath(seed));

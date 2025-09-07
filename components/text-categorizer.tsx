@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { TextChunk } from '@/lib/api/types';
-import { CATEGORIES, getCategoryLabels, getCategoryColors } from '@/lib/config/categories';
 import { BreathingAnimation } from '@/components/breathing-animation';
 import { GrumpyFaceSelector } from '@/components/grumpy-face-selector';
 
@@ -14,14 +13,10 @@ interface TextCategorizerProps {
   onSave?: (chunks: TextChunk[]) => void;
 }
 
-// Get category data from config
-const categoryLabels = getCategoryLabels();
-const categoryColors = getCategoryColors();
 
 export function TextCategorizer({ onSave }: TextCategorizerProps) {
   const [text, setText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [chunks, setChunks] = useState<Omit<TextChunk, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]>([]);
   const [showBreathingAnimation, setShowBreathingAnimation] = useState(false);
   const [emotionalIntensity, setEmotionalIntensity] = useState<'low' | 'medium' | 'high' | null>(null);
 
@@ -85,11 +80,10 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
       const saveData = await saveResponse.json();
       
       // Check if any chunks are worries_anxiety category
-      const hasWorryChunks = categorizedChunks.some((chunk: any) => chunk.category === 'worries_anxiety');
+      const hasWorryChunks = categorizedChunks.some((chunk: { category: string }) => chunk.category === 'worries_anxiety');
       
       // Reset form
       setText('');
-      setChunks([]);
       setEmotionalIntensity(null);
       
       if (onSave) {
