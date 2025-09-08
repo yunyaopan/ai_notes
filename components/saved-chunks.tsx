@@ -289,10 +289,10 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
   return (
     <Card className="w-full">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3 justify-between">
+          <div className="flex items-center gap-4 min-w-0">
             <CardTitle>Your Saved Chunks ({chunks.length})</CardTitle>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {getRankableCategories().map((category) => {
                 const categoryChunks = chunks.filter(chunk => chunk.category === category.key);
                 if (categoryChunks.length === 0) return null;
@@ -303,7 +303,7 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                     variant="outline"
                     size="sm"
                     onClick={() => handleCategoryClick(category.key)}
-                    className="text-xs"
+                    className="text-xs whitespace-nowrap"
                   >
                     Review {category.label} ({categoryChunks.length})
                   </Button>
