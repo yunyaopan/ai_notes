@@ -167,6 +167,10 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
   };
 
   const handleQuickCategoryChange = async (chunkId: string, newCategory: string) => {
+    const currentChunk = chunks.find(c => c.id === chunkId);
+    if (!currentChunk) {
+      return;
+    }
     try {
       const response = await fetch(`/api/chunks/${chunkId}`, {
         method: 'PATCH',
@@ -174,6 +178,7 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          content: currentChunk.content,
           category: newCategory
         }),
       });
