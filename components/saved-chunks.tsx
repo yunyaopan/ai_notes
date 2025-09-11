@@ -171,6 +171,20 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
     if (!currentChunk) {
       return;
     }
+
+    const previousCategory = currentChunk.category;
+
+    // Optimistically update UI immediately
+    setChunks(prev => 
+      prev.map(chunk => 
+        chunk.id === chunkId 
+          ? { ...chunk, category: newCategory } 
+          : chunk
+      )
+    );
+    // Close inline editor for a snappier feel
+    setEditingCategory(null);
+
     try {
       const response = await fetch(`/api/chunks/${chunkId}`, {
         method: 'PATCH',
@@ -187,20 +201,19 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to update category');
       }
-
-      // Update local state immediately for responsive UI
-      setChunks(prev => 
-        prev.map(chunk => 
-          chunk.id === chunkId 
-            ? { ...chunk, category: newCategory } 
-            : chunk
-        )
-      );
-
-      setEditingCategory(null);
+      // success: nothing else to do, UI already updated
     } catch (error) {
       console.error('Error updating category:', error);
       alert(error instanceof Error ? error.message : 'Failed to update category');
+
+      // Revert optimistic update on error
+      setChunks(prev => 
+        prev.map(chunk => 
+          chunk.id === chunkId 
+            ? { ...chunk, category: previousCategory } 
+            : chunk
+        )
+      );
     }
   };
 
