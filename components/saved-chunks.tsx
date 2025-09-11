@@ -578,7 +578,7 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
       {/* Edit Modal */}
       {editingChunk && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-background text-foreground border border-input rounded-lg p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold mb-4">Edit Chunk</h3>
             
             <div className="space-y-4">
@@ -588,7 +588,7 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                   id="edit-content"
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full p-2 border rounded-md text-sm min-h-[100px] resize-vertical mt-1"
+                  className="w-full p-2 border border-input rounded-md text-sm min-h-[100px] resize-vertical mt-1 bg-background text-foreground"
                   placeholder="Edit your content..."
                 />
               </div>
@@ -599,7 +599,7 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                   id="edit-category"
                   value={editCategory}
                   onChange={(e) => setEditCategory(e.target.value)}
-                  className="w-full p-2 border rounded-md text-sm mt-1"
+                  className="w-full p-2 border border-input rounded-md text-sm mt-1 bg-background text-foreground"
                 >
                   {CATEGORIES.map((category) => (
                     <option key={category.key} value={category.key}>
