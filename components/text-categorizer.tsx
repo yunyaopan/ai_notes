@@ -36,8 +36,8 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
   };
 
   const handleSubmit = async () => {
-    if (!text.trim() || text.length < 10) {
-      alert('Please enter at least 10 characters of text.');
+    if (!text.trim()) {
+      alert('Please enter some text.');
       return;
     }
 
@@ -151,13 +151,13 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            Minimum 10 characters required. Current: {text.length}
+            Current: {text.length} characters
           </p>
         </div>
 
         <Button 
           onClick={handleSubmit}
-          disabled={isProcessing || text.length < 10}
+          disabled={isProcessing || !text.trim()}
           className="w-full"
         >
           {isProcessing ? 'Processing...' : 'Submit'}

@@ -62,6 +62,15 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
     setEditingChunk(chunk);
     setEditContent(chunk.content);
     setEditCategory(chunk.category);
+    
+    // Auto-resize textarea after modal opens
+    setTimeout(() => {
+      const textarea = document.getElementById('edit-content') as HTMLTextAreaElement;
+      if (textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, window.innerHeight * 0.6) + 'px';
+      }
+    }, 100);
   };
 
   const handleSaveEdit = async () => {
@@ -417,7 +426,7 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-sm leading-relaxed">{chunk.content}</p>
+                            <p className="text-sm leading-relaxed whitespace-pre-wrap">{chunk.content}</p>
                           </div>
                         </div>
                         <DropdownMenu>
@@ -516,7 +525,7 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                         {chunk.pinned && (
                           <Pin className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
                         )}
-                        <p className="text-sm leading-relaxed">{chunk.content}</p>
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{chunk.content}</p>
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -584,23 +593,29 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
       
       {/* Edit Modal */}
       {editingChunk && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-background text-foreground border border-input rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">Edit Chunk</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background text-foreground border border-input rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
+            <h3 className="text-lg font-semibold mb-4 flex-shrink-0">Edit Chunk</h3>
             
-            <div className="space-y-4">
-              <div>
+            <div className="space-y-4 flex-1 flex flex-col min-h-0">
+              <div className="flex-1 flex flex-col min-h-0">
                 <Label htmlFor="edit-content">Content</Label>
                 <textarea
                   id="edit-content"
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full p-2 border border-input rounded-md text-sm min-h-[100px] resize-vertical mt-1 bg-background text-foreground"
+                  className="w-full p-2 border border-input rounded-md text-sm min-h-[200px] max-h-[60vh] resize-none mt-1 bg-background text-foreground"
                   placeholder="Edit your content..."
+                  style={{ height: 'auto' }}
+                  onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto';
+                    target.style.height = Math.min(target.scrollHeight, window.innerHeight * 0.6) + 'px';
+                  }}
                 />
               </div>
               
-              <div>
+              <div className="flex-shrink-0">
                 <Label htmlFor="edit-category">Category</Label>
                 <select
                   id="edit-category"
@@ -617,7 +632,7 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
               </div>
             </div>
             
-            <div className="flex gap-2 mt-6">
+            <div className="flex gap-2 mt-6 flex-shrink-0">
               <Button onClick={handleSaveEdit} className="flex-1">
                 Save Changes
               </Button>

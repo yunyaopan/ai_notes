@@ -79,7 +79,7 @@ describe('/api/categorize Integration Tests', () => {
       expect(mockOpenRouterFunctions.categorizeText).not.toHaveBeenCalled();
     });
 
-    it('should enforce minimum text length', async () => {
+    it('should accept short text', async () => {
       const { POST } = await import('../../app/api/categorize/route');
 
       const mockRequest = {
@@ -89,9 +89,8 @@ describe('/api/categorize Integration Tests', () => {
       const response = await POST(mockRequest as any);
       const data = await response.json();
 
-      expect(response.status).toBe(400);
-      expect(data.error).toBe('Text must be at least 10 characters long');
-      expect(mockOpenRouterFunctions.categorizeText).not.toHaveBeenCalled();
+      expect(response.status).toBe(200);
+      expect(mockOpenRouterFunctions.categorizeText).toHaveBeenCalledWith('short');
     });
   });
 

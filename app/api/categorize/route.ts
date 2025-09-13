@@ -19,9 +19,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Text is required' }, { status: 400 });
     }
 
-    if (body.text.length < 10) {
-      return NextResponse.json({ error: 'Text must be at least 10 characters long' }, { status: 400 });
-    }
 
     const chunks = await categorizeText(body.text);
     
