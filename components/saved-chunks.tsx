@@ -406,13 +406,7 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                                 <Badge 
                                   className={`${categoryConfig?.color || 'bg-gray-100 text-gray-800'} cursor-pointer hover:opacity-80`} 
                                   variant="outline"
-                                  onClick={() => {
-                                    if (isCategoryRankable(chunk.category)) {
-                                      handleCategoryClick(chunk.category);
-                                    } else {
-                                      setEditingCategory(chunk.id!);
-                                    }
-                                  }}
+                                  onClick={() => setEditingCategory(chunk.id!)}
                                 >
                                   {categoryConfig?.label || chunk.category}
                                 </Badge>
