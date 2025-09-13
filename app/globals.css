@@ -65,4 +65,13 @@
   body {
     @apply bg-background text-foreground;
   }
+  html {
+    /* Prevent layout shift on font load */
+    font-display: block;
+  }
+  main {
+    /* Ensure consistent width behavior */
+    width: 100%;
+    min-width: 0;
+  }
 }

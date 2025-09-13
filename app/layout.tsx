@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  display: "swap",
+  display: "block",
   subsets: ["latin"],
 });
 

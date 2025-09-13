@@ -28,7 +28,7 @@ export default function ProtectedLayout({
             {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
           </div>
         </nav>
-        <div className="flex-1 flex flex-col gap-8 sm:gap-20 max-w-5xl p-4 sm:p-5">
+        <div className="flex-1 flex flex-col gap-8 sm:gap-20 w-full max-w-5xl p-4 sm:p-5">
           {children}
         </div>
 
