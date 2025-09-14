@@ -9,6 +9,7 @@ export interface TextChunk {
   emotional_intensity?: 'low' | 'medium' | 'high' | null;
   importance?: '1' | '2' | '3' | 'deprioritized' | null;
   pinned?: boolean;
+  starred?: boolean;
   user_id: string;
   created_at?: string;
   updated_at?: string;

@@ -105,6 +105,29 @@ export async function updateTextChunk(chunkId: string, userId: string, content: 
   return data;
 }
 
+export async function updateChunkStarStatus(chunkId: string, userId: string, starred: boolean): Promise<TextChunk> {
+  const supabase = await createClient();
+  
+  const { data, error } = await supabase
+    .from('text_chunks')
+    .update({ starred, updated_at: new Date().toISOString() })
+    .eq('id', chunkId)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Database error updating star status:', error);
+    throw new Error('Failed to update chunk star status');
+  }
+
+  if (!data) {
+    throw new Error('Chunk not found or access denied');
+  }
+
+  return data;
+}
+
 export async function deleteTextChunk(chunkId: string, userId: string): Promise<void> {
   const supabase = await createClient();
   

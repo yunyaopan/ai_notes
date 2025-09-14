@@ -8,7 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Label } from '@/components/ui/label';
 import { TextChunk } from '@/lib/api/types';
 import { CATEGORIES } from '@/lib/config/categories';
-import { MoreVertical, Pin, PinOff, ChevronDown, Clock, Tag, Edit, Trash2 } from 'lucide-react';
+import { MoreVertical, Pin, PinOff, ChevronDown, Clock, Tag, Edit, Trash2, Star, StarOff } from 'lucide-react';
 import { PriorityOverlay } from '@/components/priority-overlay';
 import { isCategoryRankable, getRankableCategories } from '@/lib/config/categories';
 
@@ -31,6 +31,7 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
   const [showPriorityOverlay, setShowPriorityOverlay] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [showStarredOnly, setShowStarredOnly] = useState(false);
 
   const handleTogglePin = async (chunkId: string, currentlyPinned: boolean) => {
     try {
@@ -55,6 +56,32 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
     } catch (error) {
       console.error('Error updating pin status:', error);
       alert(error instanceof Error ? error.message : 'Failed to update pin status');
+    }
+  };
+
+  const handleToggleStar = async (chunkId: string, currentlyStarred: boolean) => {
+    try {
+      const response = await fetch('/api/chunks/star', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          chunkId, 
+          starred: !currentlyStarred 
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update star status');
+      }
+
+      // Refresh the chunks to show the updated star status
+      fetchChunks();
+    } catch (error) {
+      console.error('Error updating star status:', error);
+      alert(error instanceof Error ? error.message : 'Failed to update star status');
     }
   };
 
@@ -254,9 +281,12 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
 
   // Sort and group chunks based on selected sort option
   const getSortedAndGroupedChunks = () => {
+    // Filter chunks based on starred filter
+    const filteredChunks = showStarredOnly ? chunks.filter(chunk => chunk.starred) : chunks;
+    
     if (sortBy === 'time') {
       // For time sorting, return all chunks in a single group sorted by time
-      const sortedChunks = [...chunks].sort((a, b) => {
+      const sortedChunks = [...filteredChunks].sort((a, b) => {
         const dateA = new Date(a.created_at || 0).getTime();
         const dateB = new Date(b.created_at || 0).getTime();
         return dateB - dateA; // Latest first
@@ -264,7 +294,7 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
       return { 'All Chunks': sortedChunks };
     } else {
       // For category sorting, group by category
-      return chunks.reduce((acc, chunk) => {
+      return filteredChunks.reduce((acc, chunk) => {
         if (!acc[chunk.category]) {
           acc[chunk.category] = [];
         }
@@ -320,6 +350,15 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
           <div className="flex items-center gap-4 min-w-0">
             <CardTitle>Your Saved Chunks ({chunks.length})</CardTitle>
             <div className="flex flex-wrap gap-2">
+              <Button
+                variant={showStarredOnly ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowStarredOnly(!showStarredOnly)}
+                className="text-xs whitespace-nowrap"
+              >
+                <Star className="h-3 w-3 mr-1" />
+                {showStarredOnly ? 'Show All' : `Starred (${chunks.filter(chunk => chunk.starred).length})`}
+              </Button>
               {getRankableCategories().map((category) => {
                 const categoryChunks = chunks.filter(chunk => chunk.category === category.key);
                 if (categoryChunks.length === 0) return null;
@@ -395,6 +434,9 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                           {chunk.pinned && (
                             <Pin className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
                           )}
+                          {chunk.starred && (
+                            <Star className="h-4 w-4 text-yellow-500 dark:text-yellow-400 mt-0.5 flex-shrink-0 fill-current" />
+                          )}
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               {editingCategory === chunk.id ? (
@@ -453,6 +495,22 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                                 <>
                                   <Pin className="h-4 w-4 mr-2" />
                                   Pin to top
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleToggleStar(chunk.id!, chunk.starred || false)}
+                              className="cursor-pointer"
+                            >
+                              {chunk.starred ? (
+                                <>
+                                  <StarOff className="h-4 w-4 mr-2" />
+                                  Unstar
+                                </>
+                              ) : (
+                                <>
+                                  <Star className="h-4 w-4 mr-2" />
+                                  Star
                                 </>
                               )}
                             </DropdownMenuItem>
@@ -525,6 +583,9 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                         {chunk.pinned && (
                           <Pin className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
                         )}
+                        {chunk.starred && (
+                          <Star className="h-4 w-4 text-yellow-500 dark:text-yellow-400 mt-0.5 flex-shrink-0 fill-current" />
+                        )}
                         <p className="text-sm leading-relaxed whitespace-pre-wrap">{chunk.content}</p>
                       </div>
                       <DropdownMenu>
@@ -551,6 +612,22 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                               <>
                                 <Pin className="h-4 w-4 mr-2" />
                                 Pin to top
+                              </>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleToggleStar(chunk.id!, chunk.starred || false)}
+                            className="cursor-pointer"
+                          >
+                            {chunk.starred ? (
+                              <>
+                                <StarOff className="h-4 w-4 mr-2" />
+                                Unstar
+                              </>
+                            ) : (
+                              <>
+                                <Star className="h-4 w-4 mr-2" />
+                                Star
                               </>
                             )}
                           </DropdownMenuItem>
