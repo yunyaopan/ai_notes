@@ -43,17 +43,6 @@ export default function RandomBlobGenerator() {
     };
   }
 
-  function generatePoints(seedVal: number, count: number, rad: number, jitter: number) {
-    const rng = mulberry32(seedVal);
-    const pts = [];
-    for (let i = 0; i < count; i++) {
-      const theta = (i / count) * Math.PI * 2;
-      const lowFreq = 0.7 + 0.3 * rng();
-      const r = rad * (lowFreq + (rng() - 0.5) * jitter * 2);
-      pts.push([Math.cos(theta) * r, Math.sin(theta) * r]);
-    }
-    return pts;
-  }
 
   function catmullRom2bezier(points: number[][]) {
     const d = points;
@@ -101,11 +90,23 @@ export default function RandomBlobGenerator() {
   }
 
   const buildPath = React.useCallback((seedVal: number) => {
+    function generatePoints(seedVal: number, count: number, rad: number, jitter: number) {
+      const rng = mulberry32(seedVal);
+      const pts = [];
+      for (let i = 0; i < count; i++) {
+        const theta = (i / count) * Math.PI * 2;
+        const lowFreq = 0.7 + 0.3 * rng();
+        const r = rad * (lowFreq + (rng() - 0.5) * jitter * 2);
+        pts.push([Math.cos(theta) * r, Math.sin(theta) * r]);
+      }
+      return pts;
+    }
+
     const rad = size / 2 - 10;
     const raw = generatePoints(seedVal, points, rad, randomness);
     const smooth = chaikin(raw, 2);
     return catmullRom2bezier(smooth);
-  }, [size, points, randomness, generatePoints]);
+  }, [size, points, randomness]);
 
   useEffect(() => {
     setSeededBlob(buildPath(seed));

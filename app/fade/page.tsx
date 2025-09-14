@@ -1,35 +1,17 @@
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { AuthButton } from "@/components/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { Navigation } from "@/components/navigation";
 import RandomBlobGenerator from "@/components/random-blob-generator";
-import { hasEnvVars } from "@/lib/utils";
-import Link from "next/link";
 
 export default function FadePage() {
   return (
     <main className="min-h-screen flex flex-col items-center overflow-x-hidden">
       <div className="flex-1 w-full flex flex-col gap-20 items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-4 sm:px-5 text-sm">
-            <div className="flex gap-3 sm:gap-5 items-center font-semibold">
-              <Link href={"/"}>Gooday</Link>
-              <div className="flex gap-2 sm:gap-3">
-                <Link href={"/protected"} className="text-xs sm:text-sm hover:underline">
-                  write
-                </Link>
-                <Link href={"/fade"} className="text-xs sm:text-sm hover:underline">
-                  feel
-                </Link>
-              </div>
-            </div>
-            {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
-          </div>
-        </nav>
+        <Navigation />
         <div className="flex-1 flex flex-col gap-6 sm:gap-8 max-w-5xl p-4 sm:p-5">
           <div className="flex flex-col items-center gap-2 sm:gap-4">
             <h1 className="font-bold text-2xl sm:text-3xl md:text-4xl text-center">Feel & Let Go</h1>
             <p className="text-muted-foreground text-center max-w-2xl px-4">
-            See your feelings take shape, then gently let them go.
+            This tool is designed to help you visualize your emotions or thoughts as a dynamic, colorful blob. By seeing it take shape, you can acknowledge the feeling in the moment. When you’re ready, click Fade Away to watch it shrink and dissolve, symbolizing the release of that emotion or thought. This process encourages mindfulness, helping you recognize and let go, one breath at a time.
             </p>
           </div>
           <RandomBlobGenerator />

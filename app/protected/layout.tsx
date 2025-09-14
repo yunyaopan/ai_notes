@@ -1,8 +1,5 @@
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { AuthButton } from "@/components/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
-import { hasEnvVars } from "@/lib/utils";
-import Link from "next/link";
+import { Navigation } from "@/components/navigation";
 
 export default function ProtectedLayout({
   children,
@@ -12,22 +9,7 @@ export default function ProtectedLayout({
   return (
     <main className="min-h-screen flex flex-col items-center overflow-x-hidden">
       <div className="flex-1 w-full flex flex-col gap-12 sm:gap-20 items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-4 sm:px-5 text-sm">
-            <div className="flex gap-3 sm:gap-5 items-center font-semibold">
-              <Link href={"/"}>Gooday</Link>
-              <div className="flex gap-2 sm:gap-3">
-                <Link href={"/protected"} className="text-xs sm:text-sm hover:underline">
-                  write
-                </Link>
-                <Link href={"/fade"} className="text-xs sm:text-sm hover:underline">
-                  feel
-                </Link>
-              </div>
-            </div>
-            {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
-          </div>
-        </nav>
+        <Navigation />
         <div className="flex-1 flex flex-col gap-8 sm:gap-20 w-full max-w-5xl p-4 sm:p-5">
           {children}
         </div>
