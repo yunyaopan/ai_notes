@@ -11,7 +11,7 @@ export const CATEGORIES: CategoryConfig[] = [
     key: 'other_emotions',
     label: 'Other Emotions',
     description: 'General emotional expressions (happiness, sadness, anger, etc.)',
-    color: 'bg-blue-100 text-blue-800'
+    color: 'bg-amber-100 text-amber-800'
   },
   {
     key: 'insights',
@@ -41,7 +41,7 @@ export const CATEGORIES: CategoryConfig[] = [
     key: 'ideas',
     label: 'Ideas',
     description: 'Product Ideas, Business Ideas',
-    color: 'bg-purple-100 text-purple-800',
+    color: 'bg-orange-100 text-orange-800',
     rankable: true
   },
   {
