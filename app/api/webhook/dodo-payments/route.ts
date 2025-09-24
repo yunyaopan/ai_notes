@@ -1,7 +1,7 @@
 import { Webhooks } from '@dodopayments/nextjs';
 
 export const POST = Webhooks({
-  webhookKey: process.env.DODO_WEBHOOK_SECRET!,
+  webhookKey: process.env.DODO_WEBHOOK_SECRET || 'dummy-secret-for-build',
   onPayload: async (payload) => {
     console.log('Dodo webhook payload received:', payload?.type || 'unknown');
   },
