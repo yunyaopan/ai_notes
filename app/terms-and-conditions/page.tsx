@@ -23,7 +23,7 @@ export default function TermsAndConditions() {
               <section className="space-y-4">
                 <h2 className="text-2xl font-semibold">1. Acceptance of Terms</h2>
                 <p>
-                  By accessing or using the website and its services (collectively, the "Service"), you agree to comply with and be bound by these Terms and Conditions, our Privacy Policy, and any other guidelines or rules that may apply to specific features or services of the app. If you do not agree with these terms, do not use the Service.
+                  By accessing or using the website and its services (collectively, the &quot;Service&quot;), you agree to comply with and be bound by these Terms and Conditions, our Privacy Policy, and any other guidelines or rules that may apply to specific features or services of the app. If you do not agree with these terms, do not use the Service.
                 </p>
               </section>
 
@@ -44,7 +44,7 @@ export default function TermsAndConditions() {
                 <ul className="list-disc pl-6 space-y-2">
                   <li>Use the Service to create or store content that is illegal, harmful, defamatory, or violates the rights of others.</li>
                   <li>Attempt to gain unauthorized access to our systems or networks.</li>
-                  <li>Interfere with the functioning of the Service or other users' experience.</li>
+                  <li>Interfere with the functioning of the Service or other users&apos; experience.</li>
                 </ul>
                 <p>We reserve the right to suspend or terminate your account if you violate these terms.</p>
               </section>
@@ -66,7 +66,7 @@ export default function TermsAndConditions() {
               <section className="space-y-4">
                 <h2 className="text-2xl font-semibold">6. Content Ownership</h2>
                 <p>
-                  You retain ownership of all notes, documents, and other content that you upload or create through the Service ("Your Content"). However, by using the Service, you grant us a worldwide, non-exclusive, royalty-free license to store, display, and process Your Content solely for the purpose of providing the Service to you.
+                  You retain ownership of all notes, documents, and other content that you upload or create through the Service (&quot;Your Content&quot;). However, by using the Service, you grant us a worldwide, non-exclusive, royalty-free license to store, display, and process Your Content solely for the purpose of providing the Service to you.
                 </p>
                 <p>
                   You are solely responsible for the content you upload and must ensure that it does not infringe the rights of third parties.
@@ -93,7 +93,7 @@ export default function TermsAndConditions() {
               <section className="space-y-4">
                 <h2 className="text-2xl font-semibold">9. Disclaimer of Warranties</h2>
                 <p>
-                  The Service is provided "as is" and "as available" without warranties of any kind, either express or implied. We do not guarantee that the Service will be error-free, uninterrupted, or secure.
+                  The Service is provided &quot;as is&quot; and &quot;as available&quot; without warranties of any kind, either express or implied. We do not guarantee that the Service will be error-free, uninterrupted, or secure.
                 </p>
               </section>
 
