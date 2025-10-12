@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { saveTextChunks, getUserTextChunks } from '@/lib/api/database';
 import { SaveChunksRequest, SaveChunksResponse } from '@/lib/api/types';
-import { sendUsageEvents } from '@/lib/api/dodo';
+import { recordUsage } from '@/lib/api/usage';
 import { getCategoryKeys } from '@/lib/config/categories';
 
 export async function POST(request: NextRequest) {
@@ -34,21 +34,8 @@ export async function POST(request: NextRequest) {
 
     const savedChunks = await saveTextChunks(body.chunks, user.id);
 
-    // Send usage events to Dodo for each stored note
-    const timestamp = new Date().toISOString();
-    const events = (savedChunks || []).map((chunk) => ({
-      event_id: chunk.id || `note_${Math.random().toString(36).slice(2)}`,
-      customer_id: user.id,
-      event_name: 'note.store',
-      timestamp,
-      metadata: {
-        category: chunk.category,
-        length: (chunk.content || '').length,
-        pinned: !!chunk.pinned,
-      },
-    }));
-    // Fire-and-forget; errors are logged inside helper
-    sendUsageEvents(events);
+    // Record usage in Stripe for each saved chunk
+    await recordUsage(user.id, 'chunk_saved', savedChunks.length);
     
     const response: SaveChunksResponse = {
       success: true,

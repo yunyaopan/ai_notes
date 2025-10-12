@@ -16,7 +16,7 @@ export default function Home() {
           {/* Benefits Section */}
           <div className="w-full max-w-4xl space-y-12">
             <div className="text-center space-y-4">
-              <h2 className="text-3xl font-bold">Why Gooday?</h2>
+              <h2 className="text-3xl font-bold">Why MindSort?</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 Stop losing important thoughts in endless notes. Get organized, stay focused, and take action on what truly matters.
               </p>
