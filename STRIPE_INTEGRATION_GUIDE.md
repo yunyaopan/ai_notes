@@ -1,5 +1,7 @@
 # Stripe Integration Guide
 
+13 Oct 2025
+
 This guide provides a comprehensive template for implementing Stripe subscription payments in Next.js applications with Supabase authentication.
 
 ## Table of Contents
