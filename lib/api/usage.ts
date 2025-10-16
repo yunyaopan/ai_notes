@@ -3,6 +3,19 @@ import { getCustomerByUserId } from '@/lib/api/database';
 import Stripe from 'stripe';
 
 /**
+ * Helper function to record meter events
+ */
+async function recordMeterEvent(stripeCustomerId: string, action: string, quantity: number): Promise<void> {
+  await stripe.billing.meterEvents.create({
+    event_name: action,
+    payload: {
+      value: String(Math.floor(quantity)),
+      stripe_customer_id: stripeCustomerId,
+    },
+  });
+}
+
+/**
  * Records usage for a user's subscription
  * This should be called whenever a billable action occurs
  */
@@ -16,42 +29,10 @@ export async function recordUsage(userId: string, action: string, quantity: numb
       return;
     }
 
-    // Get active subscriptions for this customer
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customer.stripe_customer_id,
-      status: 'active',
-    });
-
-    if (subscriptions.data.length === 0) {
-      console.warn('No active subscription found for customer:', customer.stripe_customer_id);
-      return;
-    }
-
-    // Find subscription with usage-based pricing
-    const subscription = subscriptions.data.find(sub => {
-      return sub.items.data.some(item => 
-        item.price.billing_scheme === 'per_unit' && 
-        item.price.recurring?.usage_type === 'metered'
-      );
-    });
-
-    if (!subscription) {
-      console.warn('No usage-based subscription found for customer:', customer.stripe_customer_id);
-      return;
-    }
-
-    // Record usage via Billing Meter Events API
-    // action corresponds to the configured meter's event_name in Stripe
-    await stripe.billing.meterEvents.create({
-      event_name: action,
-      payload: {
-        // Stripe expects string values in payload
-        value: String(Math.floor(quantity)),
-        stripe_customer_id: customer.stripe_customer_id,
-      },
-      timestamp: Math.floor(Date.now() / 1000),
-    });
-
+    // Record meter event directly - no need for subscription detection
+    // Meter events work independently and Stripe handles the billing
+    console.log('Recording meter event for customer:', customer.stripe_customer_id);
+    await recordMeterEvent(customer.stripe_customer_id, action, quantity);
     console.log(`Recorded usage for user ${userId}: ${quantity} ${action}`);
   } catch (error) {
     console.error('Error recording usage:', error);
@@ -70,45 +51,19 @@ export async function getCurrentUsage(userId: string): Promise<{ used: number; l
       return null;
     }
 
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customer.stripe_customer_id,
-      status: 'active',
-    });
-
-    if (subscriptions.data.length === 0) {
-      return null;
-    }
-
-    const subscription = subscriptions.data.find(sub => {
-      return sub.items.data.some(item => 
-        item.price.billing_scheme === 'per_unit' && 
-        item.price.recurring?.usage_type === 'metered'
-      );
-    });
-
-    if (!subscription) {
-      return null;
-    }
-
-    const usageItem = subscription.items.data.find(item => 
-      item.price.billing_scheme === 'per_unit' && 
-      item.price.recurring?.usage_type === 'metered'
-    );
-
-    if (!usageItem) {
-      return null;
-    }
-
-    // Get usage records for current billing period
-    const currentPeriodStart = Math.floor((usageItem.current_period_start || 0) / 60) * 60;
-    const endTime = Math.floor(Date.now() / 60000) * 60; // align to minute
-
-    // Resolve the meter matching this action (event_name)
+    // Get usage directly from meter events - no subscription detection needed
     const meters = await stripe.billing.meters.list({ status: 'active' });
-    const meter = meters.data[0];
-    if (!meter) {
+    if (meters.data.length === 0) {
+      console.log('No active meters found');
       return { used: 0 };
     }
+
+    // Use the first active meter (you might want to make this more specific)
+    const meter = meters.data[0];
+    
+    // Get usage for the last 30 days (you can adjust this period)
+    const currentPeriodStart = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
+    const endTime = Math.floor(Date.now() / 60000) * 60; // align to minute
 
     const summaries = await stripe.billing.meters.listEventSummaries(meter.id, {
       customer: customer.stripe_customer_id,

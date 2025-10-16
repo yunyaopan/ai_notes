@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const savedChunks = await saveTextChunks(body.chunks, user.id);
 
     // Record usage in Stripe for each saved chunk
-    await recordUsage(user.id, 'chunk_saved', savedChunks.length);
+    await recordUsage(user.id, 'notes', savedChunks.length);
     
     const response: SaveChunksResponse = {
       success: true,
