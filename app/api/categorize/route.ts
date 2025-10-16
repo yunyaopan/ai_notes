@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { categorizeText } from '@/lib/api/openrouter';
 import { CategorizeRequest, CategorizeResponse } from '@/lib/api/types';
-import { recordUsage } from '@/lib/api/usage';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,9 +26,6 @@ export async function POST(request: NextRequest) {
     const chunksWithIntensity = body.emotionalIntensity ? 
       chunks.map((chunk) => ({ ...chunk, emotional_intensity: body.emotionalIntensity })) :
       chunks;
-    
-    // Record usage for text categorization (1 unit per categorization request)
-    await recordUsage(user.id, 'text_categorized', 1);
     
     const response: CategorizeResponse = {
       chunks: chunksWithIntensity
