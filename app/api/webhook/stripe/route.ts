@@ -109,7 +109,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
           });
         } catch (error) {
           console.error('Error creating customer in subscription created:', error);
-          // Don't throw - this might be a race condition with checkout.session.completed event
+          throw error;
         }
       } else {
         console.error('Missing user_id in subscription metadata for customer:', customerId);
@@ -131,7 +131,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
               });
             } catch (error) {
               console.error('Error creating customer with fallback user_id:', error);
-              // Don't throw - this might be a race condition
+              throw error;
             }
           } else {
             console.error('Could not determine user_id for customer:', customerId);

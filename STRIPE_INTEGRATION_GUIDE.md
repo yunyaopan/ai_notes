@@ -167,7 +167,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
           });
         } catch (error) {
           console.error('Error creating customer in subscription created:', error);
-          // Don't throw - this might be a race condition with other webhook events
+          throw error;
         }
       } else {
         // Fallback: try to find user by email
@@ -206,11 +206,11 @@ const permittedEvents: string[] = [
 ];
 ```
 
-Each event handler includes proper error handling and race condition management.
+Each event handler includes proper error handling.
 
-#### 3. Race Condition Handling
+#### 3. Customer Creation
 
-The implementation includes robust error handling for race conditions where multiple webhook events might try to create the same customer:
+The implementation creates customers only when subscriptions are created, ensuring a single source of truth:
 
 ```typescript
 // In lib/api/database.ts
@@ -222,16 +222,6 @@ export async function createCustomer(customerData: Omit<Customer, 'id' | 'create
     .single();
 
   if (error) {
-    // Handle duplicate key constraint violation
-    if (error.code === '23505') {
-      console.log('Customer already exists, fetching existing customer:', customerData.stripe_customer_id);
-      // Return the existing customer instead of throwing an error
-      const existingCustomer = await getCustomerByStripeId(customerData.stripe_customer_id);
-      if (!existingCustomer) {
-        throw new Error('Customer exists but could not be retrieved');
-      }
-      return existingCustomer;
-    }
     console.error('Database error creating customer:', error);
     throw new Error('Failed to create customer');
   }
@@ -245,71 +235,6 @@ export async function createCustomer(customerData: Omit<Customer, 'id' | 'create
 1. **When user clicks subscription button**: The `user_id` is automatically passed to Stripe through both `metadata` and `subscription_data.metadata` in the checkout session
 2. **Supabase middleware**: Must exclude webhook endpoints from authentication checks
 3. **Testing**: Use Stripe CLI instead of ngrok for webhook testing
-
-## File Structure Implementation
-
-### 1. Stripe Server Configuration (`lib/stripe/server.ts`)
-
-```typescript
-import Stripe from 'stripe';
-// in the backend, use the secret key
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-09-30.clover',
-});
-```
-
-### 2. Stripe Client Configuration (`lib/stripe/client.ts`)
-
-```typescript
-import { loadStripe } from '@stripe/stripe-js';
-// in the frontend, use the publishable key
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
-
-export default stripePromise;
-```
-
-
-
-## Critical Bugs and Issues to Avoid
-
-1. **Quantity Bug**: In the checkout session creation, DO NOT set `quantity` if using usage-based subscriptions. The current implementation correctly omits this and includes a comment explaining why.
-
-2. **Race Condition Handling**: The webhook implementation includes comprehensive error handling for race conditions where multiple webhook events might try to create the same customer record. Customer records are only created in the `customer.subscription.created` event to avoid duplication.
-
-3. **Fallback User ID Resolution**: If the `user_id` is missing from subscription metadata, the implementation includes a fallback mechanism to find the user by email address.
-
-4. Update your middleware to allow subscription pages and webhook endpoints without authentication:
-
-```typescript
-// In lib/supabase/middleware.ts
-!request.nextUrl.pathname.startsWith("/subscriptions") &&
-!request.nextUrl.pathname.startsWith("/api/webhook")
-```
-
-
-## Stripe Dashboard Setup for Manual setup
-
-1. Create a product in Stripe Dashboard
-2. Set up a recurring price with a lookup key (e.g., `your-app-monthly`)
-3. Set up a usage meter
-
-
-## Testing Checklist
-
-### Pre-Testing Setup
-- [ ] Stripe CLI installed and logged in
-- [ ] Environment variables configured (`STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`)
-- [ ] Supabase middleware excludes webhook endpoints
-- [ ] Price lookup key updated in subscribe button
-- [ ] Customers table exists in Supabase
-
-### Testing Flow
-1. Start your Next.js development server: `npm run dev`
-2. Start Stripe CLI webhook listener: `stripe listen --forward-to http://localhost:3000/api/webhook/stripe`
-3. Copy the webhook signing secret from CLI output to your `.env.local`
-4. Test credit card details: 4242424242424242. CVC is any 3 digits. Date is any future date.
-5. Monitor both your application logs and Stripe CLI output for debugging
-
 
 ## Usage Tracking Implementation
 
@@ -373,6 +298,72 @@ export async function GET() {
 }
 
 ```
+
+## Other setup files
+
+### 1. Stripe Server Configuration (`lib/stripe/server.ts`)
+
+```typescript
+import Stripe from 'stripe';
+// in the backend, use the secret key
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2025-09-30.clover',
+});
+```
+
+### 2. Stripe Client Configuration (`lib/stripe/client.ts`)
+
+```typescript
+import { loadStripe } from '@stripe/stripe-js';
+// in the frontend, use the publishable key
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+
+export default stripePromise;
+```
+
+
+
+## Critical Bugs and Issues to Avoid
+
+1. **Quantity Bug**: In the checkout session creation, DO NOT set `quantity` if using usage-based subscriptions. The current implementation correctly omits this and includes a comment explaining why.
+
+2. **Fallback User ID Resolution**: If the `user_id` is missing from subscription metadata, the implementation includes a fallback mechanism to find the user by email address.
+
+3. Update your middleware to allow subscription pages and webhook endpoints without authentication:
+
+```typescript
+// In lib/supabase/middleware.ts
+!request.nextUrl.pathname.startsWith("/subscriptions") &&
+!request.nextUrl.pathname.startsWith("/api/webhook")
+```
+
+
+## Stripe Dashboard Setup for Manual setup
+
+1. Create a product in Stripe Dashboard
+2. Set up a recurring price with a lookup key (e.g., `your-app-monthly`)
+3. Set up a usage meter
+
+
+## Testing Checklist
+
+### Pre-Testing Setup
+- [ ] Stripe CLI installed and logged in
+- [ ] Environment variables configured (`STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`)
+- [ ] Supabase middleware excludes webhook endpoints
+- [ ] Price lookup key updated in subscribe button
+- [ ] Customers table exists in Supabase
+
+### Testing Flow
+1. Start your Next.js development server: `npm run dev`
+2. Start Stripe CLI webhook listener: `stripe listen --forward-to http://localhost:3000/api/webhook/stripe`
+3. Copy the webhook signing secret from CLI output to your `.env.local`
+4. Test credit card details: 4242424242424242. CVC is any 3 digits. Date is any future date.
+5. Monitor both your application logs and Stripe CLI output for debugging
+
+For step 2&3, for production, you just need to set up the webhook endpoint in stripe portal (/api/webhook/stripe). Step 2&3 is needed for local just because Stripe can't reach your local via a publicly accessbile endpoint.
+
+
 
 ## Additional Notes
 

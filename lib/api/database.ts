@@ -164,16 +164,6 @@ export async function createCustomer(customerData: Omit<Customer, 'id' | 'create
     .single();
 
   if (error) {
-    // Handle duplicate key constraint violation
-    if (error.code === '23505') {
-      console.log('Customer already exists, fetching existing customer:', customerData.stripe_customer_id);
-      // Return the existing customer instead of throwing an error
-      const existingCustomer = await getCustomerByStripeId(customerData.stripe_customer_id);
-      if (!existingCustomer) {
-        throw new Error('Customer exists but could not be retrieved');
-      }
-      return existingCustomer;
-    }
     console.error('Database error creating customer:', error);
     throw new Error('Failed to create customer');
   }
