@@ -34,7 +34,6 @@ export async function POST(req: Request) {
   console.log('✅ Webhook signature verified for event:', event.id);
 
   const permittedEvents: string[] = [
-    'checkout.session.completed',
     'customer.subscription.created',
     'customer.subscription.updated',
     'customer.subscription.deleted',
@@ -47,10 +46,6 @@ export async function POST(req: Request) {
 
     try {
       switch (event.type) {
-        case 'checkout.session.completed':
-          data = event.data.object as Stripe.Checkout.Session;
-          await handleCheckoutSessionCompleted(data);
-          break;
         case 'customer.subscription.created':
           data = event.data.object as Stripe.Subscription;
           await handleSubscriptionCreated(data);
@@ -87,36 +82,6 @@ export async function POST(req: Request) {
   return NextResponse.json({message: 'Received'}, {status: 200});
 }
 
-async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
-  if (session.mode === 'subscription' && session.customer) {
-    const customerId = typeof session.customer === 'string' 
-      ? session.customer 
-      : session.customer.id;
-
-    // Get customer details from Stripe
-    const stripeCustomer = await stripe.customers.retrieve(customerId);
-    
-    if (typeof stripeCustomer === 'object' && !stripeCustomer.deleted && stripeCustomer.email) {
-      // Check if customer already exists
-      const existingCustomer = await getCustomerByStripeId(customerId);
-      
-      if (!existingCustomer) {
-        // Create new customer record
-        try {
-          await createCustomer({
-            stripe_customer_id: customerId,
-            subscription_status: 'active',
-            email: stripeCustomer.email,
-            user_id: session.metadata?.userId || '',
-          });
-        } catch (error) {
-          console.error('Error creating customer in checkout session completed:', error);
-          // Don't throw - this might be a race condition with subscription.created event
-        }
-      }
-    }
-  }
-}
 
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   const customerId = typeof subscription.customer === 'string' 

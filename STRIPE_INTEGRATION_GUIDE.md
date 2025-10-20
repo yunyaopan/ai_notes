@@ -44,7 +44,7 @@ Add these to your `package.json`:
 
 ## Subscribe button
 
-**CRITICAL**: Update the `lookup_key` in your subscribe button component. you can find in the advanced options of a 'Price' object. 
+**CRITICAL**: Update the `lookup_key` in your subscribe button component. The lookup_key value can be found in the advanced options of a 'Price' object in the Stripe portal. 
 
 ```typescript
 // In components/subscribe-button.tsx
@@ -140,38 +140,6 @@ The webhook handlers extract the `user_id` from the event metadata and use it to
 ```typescript
 // In app/api/webhook/stripe/route.ts
 
-// From checkout.session.completed event
-async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
-  if (session.mode === 'subscription' && session.customer) {
-    const customerId = typeof session.customer === 'string' 
-      ? session.customer 
-      : session.customer.id;
-
-    // Get customer details from Stripe
-    const stripeCustomer = await stripe.customers.retrieve(customerId);
-    
-    if (typeof stripeCustomer === 'object' && !stripeCustomer.deleted && stripeCustomer.email) {
-      // Check if customer already exists
-      const existingCustomer = await getCustomerByStripeId(customerId);
-      
-      if (!existingCustomer) {
-        // Create new customer record
-        try {
-          await createCustomer({
-            stripe_customer_id: customerId,
-            subscription_status: 'active',
-            email: stripeCustomer.email,
-            user_id: session.metadata?.userId || '',  // ✅ User ID from metadata
-          });
-        } catch (error) {
-          console.error('Error creating customer in checkout session completed:', error);
-          // Don't throw - this might be a race condition with subscription.created event
-        }
-      }
-    }
-  }
-}
-
 // From customer.subscription.created event
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   const customerId = typeof subscription.customer === 'string' 
@@ -199,7 +167,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
           });
         } catch (error) {
           console.error('Error creating customer in subscription created:', error);
-          // Don't throw - this might be a race condition with checkout.session.completed event
+          // Don't throw - this might be a race condition with other webhook events
         }
       } else {
         // Fallback: try to find user by email
@@ -230,7 +198,6 @@ The implementation handles multiple webhook events for comprehensive subscriptio
 
 ```typescript
 const permittedEvents: string[] = [
-  'checkout.session.completed',
   'customer.subscription.created',
   'customer.subscription.updated',
   'customer.subscription.deleted',
@@ -241,7 +208,7 @@ const permittedEvents: string[] = [
 
 Each event handler includes proper error handling and race condition management.
 
-#### 4. Race Condition Handling
+#### 3. Race Condition Handling
 
 The implementation includes robust error handling for race conditions where multiple webhook events might try to create the same customer:
 
@@ -307,7 +274,7 @@ export default stripePromise;
 
 1. **Quantity Bug**: In the checkout session creation, DO NOT set `quantity` if using usage-based subscriptions. The current implementation correctly omits this and includes a comment explaining why.
 
-2. **Race Condition Handling**: The webhook implementation includes comprehensive error handling for race conditions where multiple webhook events might try to create the same customer record.
+2. **Race Condition Handling**: The webhook implementation includes comprehensive error handling for race conditions where multiple webhook events might try to create the same customer record. Customer records are only created in the `customer.subscription.created` event to avoid duplication.
 
 3. **Fallback User ID Resolution**: If the `user_id` is missing from subscription metadata, the implementation includes a fallback mechanism to find the user by email address.
 
@@ -340,7 +307,7 @@ export default stripePromise;
 1. Start your Next.js development server: `npm run dev`
 2. Start Stripe CLI webhook listener: `stripe listen --forward-to http://localhost:3000/api/webhook/stripe`
 3. Copy the webhook signing secret from CLI output to your `.env.local`
-4. Test subscription flow - webhook events will be forwarded to your local server
+4. Test credit card details: 4242424242424242. CVC is any 3 digits. Date is any future date.
 5. Monitor both your application logs and Stripe CLI output for debugging
 
 
