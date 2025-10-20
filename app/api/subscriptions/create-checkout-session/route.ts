@@ -42,10 +42,6 @@ export async function POST(request: NextRequest) {
       success_url: `${request.nextUrl.origin}/subscriptions/success`,
       cancel_url: `${request.nextUrl.origin}/subscriptions?canceled=true`,
       customer_email: user.email,
-      metadata: {
-        userId: user.id,
-        userEmail: user.email || '',
-      },
       // Add subscription metadata that will be passed to the subscription
       subscription_data: {
         metadata: {

@@ -103,7 +103,7 @@ To properly track subscriptions and associate them with users, you need to pass 
 
 #### 1. Pass User ID to Stripe During Checkout
 
-When a user clicks the subscription button, the `user_id` is automatically passed to Stripe through the checkout session metadata:
+When a user clicks the subscription button, the `user_id` is automatically passed to Stripe through the subscription metadata:
 
 ```typescript
 // In app/api/subscriptions/create-checkout-session/route.ts
@@ -119,14 +119,10 @@ const session = await stripe.checkout.sessions.create({
   success_url: `${request.nextUrl.origin}/subscriptions/success`,
   cancel_url: `${request.nextUrl.origin}/subscriptions?canceled=true`,
   customer_email: user.email,
-  metadata: {
-    userId: user.id,           // ✅ User ID passed here
-    userEmail: user.email || '',
-  },
   // Add subscription metadata that will be passed to the subscription
   subscription_data: {
     metadata: {
-      userId: user.id,         // ✅ Also passed to subscription object
+      userId: user.id,         // ✅ User ID passed to subscription object
       userEmail: user.email || '',
     },
   },
