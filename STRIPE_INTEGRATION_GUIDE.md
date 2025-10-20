@@ -8,13 +8,29 @@ This guide provides a comprehensive template for implementing Stripe subscriptio
 
 - [Environment Variables](#environment-variables)
 - [Package Dependencies](#package-dependencies)
-- [Subscribe button](#subscribe-button)
-- [Implementation of the create-checkout-session API, webhook and creation of user in my own DB]
-- [File Structure Implementation](#file-structure-implementation)
-- [Critical Bugs and Issues](#critical-bugs-and-issues)
-- [Stripe Dashboard Setup](#stripe-dashboard-setup)
-- [Testing Checklist](#testing-checklist)
+- [Subscribe Button](#subscribe-button)
+- [Implementation of the create-checkout-session API, webhook and creation of user in my own DB](#implementation-of-the-create-checkout-session-api-webhook-and-creation-of-user-in-my-own-db)
+  - [Overview](#overview)
+  - [Implementation Steps](#implementation-steps)
+    - [1. Pass User ID to Stripe During Checkout](#1-pass-user-id-to-stripe-during-checkout)
+    - [2. Receive User ID in Webhook Events](#2-receive-user-id-in-webhook-events)
+    - [3. Additional Webhook Events](#3-additional-webhook-events)
+    - [3. Customer Creation](#3-customer-creation)
 - [Usage Tracking Implementation](#usage-tracking-implementation)
+- [Customer Portal Integration](#customer-portal-integration)
+  - [Overview](#overview)
+  - [Implementation Steps](#implementation-steps)
+  - [How It Works](#how-it-works)
+  - [Testing](#testing)
+- [Other Setup Files](#other-setup-files)
+  - [1. Stripe Server Configuration](#1-stripe-server-configuration-libstripeserverts)
+  - [2. Stripe Client Configuration](#2-stripe-client-configuration-libstripeclientts)
+- [Critical Bugs and Issues to Avoid](#critical-bugs-and-issues-to-avoid)
+- [Stripe Dashboard Setup for Manual Setup](#stripe-dashboard-setup-for-manual-setup)
+- [Testing Checklist](#testing-checklist)
+  - [Pre-Testing Setup](#pre-testing-setup)
+  - [Testing Flow](#testing-flow)
+- [Additional Notes](#additional-notes)
 
 ## Environment Variables
 
@@ -226,12 +242,6 @@ export async function createCustomer(customerData: Omit<Customer, 'id' | 'create
 }
 ```
 
-### Key Points
-
-1. **When user clicks subscription button**: The `user_id` is automatically passed to Stripe through both `metadata` and `subscription_data.metadata` in the checkout session
-2. **Supabase middleware**: Must exclude webhook endpoints from authentication checks
-3. **Testing**: Use Stripe CLI instead of ngrok for webhook testing
-
 ## Usage Tracking Implementation
 
 The `lib/api/usage.ts` file provides usage-based billing functionality. Just call this function during the event which shall incur charges.
@@ -359,6 +369,141 @@ export default stripePromise;
 
 For step 2&3, for production, you just need to set up the webhook endpoint in stripe portal (/api/webhook/stripe). Step 2&3 is needed for local just because Stripe can't reach your local via a publicly accessbile endpoint.
 
+## Customer Portal Integration
+
+The Stripe Customer Portal allows customers to manage their subscriptions, billing information, and payment methods through a Stripe-hosted interface. This section covers the implementation of the customer portal integration.
+
+### Overview
+
+The customer portal integration consists of:
+1. **API Endpoint**: Creates Stripe billing portal sessions
+2. **UI Component**: Adds customer portal link to user dropdown
+3. **Database Integration**: Fetches Stripe customer ID for authenticated users
+
+### Implementation Steps
+
+#### 1. Create Customer Portal API Endpoint
+
+Create `/app/api/customer-portal/route.ts`:
+
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { stripe } from '@/lib/stripe/server';
+import { getCustomerByUserId } from '@/lib/api/database';
+
+export async function POST(request: NextRequest) {
+  try {
+    // Get the authenticated user
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get the customer record for this user
+    const customer = await getCustomerByUserId(user.id);
+    
+    if (!customer) {
+      return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+    }
+
+    // Create a portal session
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: customer.stripe_customer_id,
+      return_url: `${request.nextUrl.origin}/subscriptions`,
+    });
+
+    return NextResponse.json({ url: portalSession.url });
+  } catch (error) {
+    console.error('Error creating customer portal session:', error);
+    return NextResponse.json(
+      { error: 'Failed to create customer portal session' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+#### 2. Update User Dropdown Component
+
+Update `/components/user-dropdown.tsx` to include the customer portal link:
+
+```typescript
+"use client";
+
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { ChevronDown } from "lucide-react";
+
+interface UserDropdownProps {
+  userEmail: string;
+}
+
+export function UserDropdown({ userEmail }: UserDropdownProps) {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const logout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/auth/login");
+  };
+
+  const handleCustomerPortal = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/customer-portal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      
+      if (data.url) {
+        // Redirect to Stripe-hosted customer portal
+        window.location.href = data.url;
+      } else {
+        console.error('No portal URL received');
+      }
+    } catch (error) {
+      console.error('Error accessing customer portal:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="flex items-center gap-2 p-0 h-auto">
+          <span className="text-sm">Hey, {userEmail}!</span>
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={handleCustomerPortal} className="cursor-pointer" disabled={isLoading}>
+          {isLoading ? 'Loading...' : 'Customer Portal'}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={logout} className="cursor-pointer">
+          Logout
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+```
 
 
 ## Additional Notes
