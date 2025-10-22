@@ -21,8 +21,8 @@ export function Navigation() {
             <Link href={"/protected"} className="text-xs sm:text-sm hover:underline">
               Write
             </Link>
-            <Link href={"/subscriptions"} className="text-xs sm:text-sm hover:underline">
-              Subscriptions
+            <Link href={"/pricing"} className="text-xs sm:text-sm hover:underline">
+              Pricing
             </Link>
             <DropdownMenu>
               <DropdownMenuTrigger className="text-xs sm:text-sm hover:underline focus:outline-none">

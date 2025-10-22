@@ -45,9 +45,9 @@ export default function PaymentSuccessPage() {
                   Go to Dashboard
                 </Button>
               </Link>
-              <Link href="/subscriptions">
+              <Link href="/pricing">
                 <Button variant="outline" className="w-full">
-                  Manage Subscription
+                  View Pricing
                 </Button>
               </Link>
             </div>

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { saveTextChunks, getUserTextChunks } from '@/lib/api/database';
 import { SaveChunksRequest, SaveChunksResponse } from '@/lib/api/types';
-import { recordUsage } from '@/lib/api/usage';
 import { getCategoryKeys } from '@/lib/config/categories';
 
 export async function POST(request: NextRequest) {
@@ -33,9 +32,6 @@ export async function POST(request: NextRequest) {
     }
 
     const savedChunks = await saveTextChunks(body.chunks, user.id);
-
-    // Record usage in Stripe for each saved chunk
-    await recordUsage(user.id, 'notes', savedChunks.length);
     
     const response: SaveChunksResponse = {
       success: true,
