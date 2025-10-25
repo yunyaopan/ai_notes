@@ -237,3 +237,28 @@ export async function getCustomerByUserId(userId: string): Promise<Customer | nu
 
   return data;
 }
+
+export async function updateUserSubscriptionMetadata(userId: string, subscriptionStatus: string): Promise<void> {
+  // Create admin client for updating app_metadata
+  const { createClient } = await import('@supabase/supabase-js');
+  
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  );
+
+  const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+    app_metadata: { subscription_status: subscriptionStatus }
+  });
+
+  if (error) {
+    console.error('Error updating user app_metadata:', error);
+    throw new Error('Failed to update user subscription metadata');
+  }
+}

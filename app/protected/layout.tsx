@@ -1,11 +1,28 @@
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Navigation } from "@/components/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { ensureSubscription, isSubscriptionOn } from "@/lib/api/subscription";
 
-export default function ProtectedLayout({
+export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/auth/login");
+  }
+
+  // Ensure subscription exists (creates one if first time accessing)
+  await ensureSubscription(user);
+
+  const hasAccess = await isSubscriptionOn(user);
+  if (!hasAccess) {
+    redirect("/subscriptions?error=subscription_required");
+  }
   return (
     <main className="min-h-screen flex flex-col items-center overflow-x-hidden">
       <div className="flex-1 w-full flex flex-col gap-12 sm:gap-20 items-center">

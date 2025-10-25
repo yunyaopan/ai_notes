@@ -61,7 +61,7 @@ export function UserDropdown({ userEmail }: UserDropdownProps) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={handleCustomerPortal} className="cursor-pointer" disabled={isLoading}>
-          {isLoading ? 'Loading...' : 'Customer Portal'}
+          {isLoading ? 'Loading...' : 'Manage Subscription'}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={logout} className="cursor-pointer">
           Logout

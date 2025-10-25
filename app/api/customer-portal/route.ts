@@ -1,20 +1,29 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { stripe } from '@/lib/stripe/server';
+import { getCustomerByUserId } from '@/lib/api/database';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    // Get the authenticated user
     const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Redirect to the new billing portal URL
-    return NextResponse.json({ 
-      url: 'https://billing.stripe.com/p/login/test_28EdRa4rz6dc2CVckSb3q00' 
+    const customer = await getCustomerByUserId(user.id);
+    
+    if (!customer) {
+      return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+    }
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customer.stripe_customer_id,
+      return_url: `${request.nextUrl.origin}/protected`,
     });
+
+    return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error('Error creating customer portal session:', error);
     return NextResponse.json(

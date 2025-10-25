@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { saveTextChunks, getUserTextChunks } from '@/lib/api/database';
 import { SaveChunksRequest, SaveChunksResponse } from '@/lib/api/types';
+import { recordUsage } from '@/lib/api/usage';
 import { getCategoryKeys } from '@/lib/config/categories';
+import { ensureSubscription, isSubscriptionOn } from '@/lib/api/subscription';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,6 +14,13 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Ensure subscription exists and check access
+    await ensureSubscription(user);
+    const hasAccess = await isSubscriptionOn(user);
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Active subscription required' }, { status: 403 });
     }
 
     const body: SaveChunksRequest = await request.json();
@@ -56,6 +65,13 @@ export async function GET() {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Ensure subscription exists and check access
+    await ensureSubscription(user);
+    const hasAccess = await isSubscriptionOn(user);
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Active subscription required' }, { status: 403 });
     }
 
     const chunks = await getUserTextChunks(user.id);

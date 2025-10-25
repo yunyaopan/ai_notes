@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { updateTextChunk, deleteTextChunk } from '@/lib/api/database';
 import { UpdateChunkRequest, UpdateChunkResponse, DeleteChunkResponse } from '@/lib/api/types';
 import { getCategoryKeys } from '@/lib/config/categories';
+import { ensureSubscription, isSubscriptionOn } from '@/lib/api/subscription';
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
@@ -12,6 +13,13 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Ensure subscription exists and check access
+    await ensureSubscription(user);
+    const hasAccess = await isSubscriptionOn(user);
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Active subscription required' }, { status: 403 });
     }
 
     const body: UpdateChunkRequest = await request.json();
@@ -61,6 +69,13 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Ensure subscription exists and check access
+    await ensureSubscription(user);
+    const hasAccess = await isSubscriptionOn(user);
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Active subscription required' }, { status: 403 });
     }
 
     const params = await context.params;
