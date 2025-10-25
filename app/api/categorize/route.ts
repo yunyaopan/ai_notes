@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { categorizeText } from '@/lib/api/openrouter';
 import { CategorizeRequest, CategorizeResponse } from '@/lib/api/types';
-import { recordUsage } from '@/lib/api/usage';
 import { ensureSubscription, isSubscriptionOn } from '@/lib/api/subscription';
 
 export async function POST(request: NextRequest) {

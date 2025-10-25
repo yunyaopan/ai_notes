@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { saveTextChunks, getUserTextChunks } from '@/lib/api/database';
 import { SaveChunksRequest, SaveChunksResponse } from '@/lib/api/types';
-import { recordUsage } from '@/lib/api/usage';
 import { getCategoryKeys } from '@/lib/config/categories';
 import { ensureSubscription, isSubscriptionOn } from '@/lib/api/subscription';
 

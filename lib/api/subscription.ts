@@ -1,6 +1,5 @@
-import { createClient } from '@/lib/supabase/server';
 import { stripe } from '@/lib/stripe/server';
-import { createCustomer, getCustomerByUserId, updateCustomerSubscriptionStatus, updateUserSubscriptionMetadata } from './database';
+import { createCustomer, getCustomerByUserId, updateUserSubscriptionMetadata } from './database';
 import { User } from '@supabase/supabase-js';
 
 // Re-export getCustomerByUserId for convenience

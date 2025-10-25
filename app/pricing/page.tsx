@@ -1,7 +1,7 @@
 import { Navigation } from '@/components/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { ensureSubscription, getCustomerByUserId, getSubscriptionStatus, isSubscriptionOn } from '@/lib/api/subscription';
+import { ensureSubscription, getSubscriptionStatus, isSubscriptionOn } from '@/lib/api/subscription';
 import { CustomerPortalButton } from '@/components/customer-portal-button';
 
 export default async function PricingPage() {
@@ -15,7 +15,6 @@ export default async function PricingPage() {
   // Ensure subscription exists (creates one if first time accessing)
   await ensureSubscription(user);
   
-  const customer = await getCustomerByUserId(user.id);
   const subscriptionStatus = await getSubscriptionStatus(user);
   const hasAccess = await isSubscriptionOn(user);
 
