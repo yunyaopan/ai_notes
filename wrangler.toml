@@ -30,3 +30,5 @@ STRIPE_WEBHOOK_SECRET = "whsec_replace_with_real_secret"
 
 # Supabase Service Role Key (keep this secret!)
 SUPABASE_SERVICE_ROLE_KEY = "your-service-role-key-here"
+
+OPENAI_API_KEY = "openai_key"
