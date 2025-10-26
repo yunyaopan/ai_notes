@@ -7,28 +7,3 @@ compatibility_flags = ["nodejs_compat"]
 directory = ".open-next/assets"
 binding = "ASSETS"
 
-# IMPORTANT: These are temporary values for local builds
-# Replace these with real values in your Cloudflare Dashboard:
-# 1. Go to Workers & Pages → Your Worker → Settings → Environment Variables
-# 2. Add each variable with your actual production values
-[vars]
-# Supabase Configuration (get from https://app.supabase.com/project/_/settings/api)
-NEXT_PUBLIC_SUPABASE_URL = "https://your-project.supabase.co"
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY = "your-anon-key-here"
-
-# OpenRouter API Configuration (get from https://openrouter.ai/keys)
-OPENROUTER_API_KEY = "sk-or-v1-temporary-key-for-local-build"
-
-# Site URL (update with your actual domain)
-NEXT_PUBLIC_SITE_URL = "https://ai-note.your-subdomain.workers.dev"
-
-# Stripe Configuration (get from https://dashboard.stripe.com/apikeys)
-# These are test keys - replace with live keys in production
-STRIPE_SECRET_KEY = "sk_test_replace_with_real_key"
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = "pk_test_replace_with_real_key"
-STRIPE_WEBHOOK_SECRET = "whsec_replace_with_real_secret"
-
-# Supabase Service Role Key (keep this secret!)
-SUPABASE_SERVICE_ROLE_KEY = "your-service-role-key-here"
-
-OPENAI_API_KEY = "xxx"
