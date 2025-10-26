@@ -30,6 +30,9 @@ export async function POST(request: NextRequest) {
       case 'customer.subscription.deleted':
         await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
         break;
+      case 'customer.subscription.trial_will_end':
+        await handleTrialWillEnd(event.data.object as Stripe.Subscription);
+        break;
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
@@ -122,10 +125,39 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   const customer = await getCustomerByStripeId(customerId);
   
   if (customer) {
+    console.log(`Subscription deleted for customer ${customerId}, user ${customer.user_id}. Reason: ${subscription.cancel_at_period_end ? 'End of billing period' : 'Immediate cancellation'}`);
+    
     // Update subscription status to canceled
     await updateCustomerSubscriptionStatus(customerId, 'canceled');
     
     // Update user app_metadata
     await updateUserSubscriptionMetadata(customer.user_id, 'canceled');
+    
+    console.log(`Successfully updated subscription status to canceled for user ${customer.user_id}`);
+  } else {
+    console.warn(`No customer found for deleted subscription ${subscription.id} with customer ID ${customerId}`);
+  }
+}
+
+async function handleTrialWillEnd(subscription: Stripe.Subscription) {
+  const customerId = typeof subscription.customer === 'string' 
+    ? subscription.customer 
+    : subscription.customer.id;
+
+  const customer = await getCustomerByStripeId(customerId);
+  
+  if (customer) {
+    console.log(`Trial will end for customer ${customerId}, user ${customer.user_id}. Trial ends at: ${new Date(subscription.trial_end! * 1000).toISOString()}`);
+    
+    // Here you could implement additional logic such as:
+    // - Send email notification to customer
+    // - Show in-app notification
+    // - Log analytics event
+    // - Check if customer has payment method and warn if not
+    
+    // For now, we'll just log the event
+    console.log(`Trial ending notification processed for user ${customer.user_id}`);
+  } else {
+    console.warn(`No customer found for trial ending subscription ${subscription.id} with customer ID ${customerId}`);
   }
 }

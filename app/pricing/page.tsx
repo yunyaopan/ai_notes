@@ -53,7 +53,7 @@ export default async function PricingPage() {
                   )}
                 </div>
                 
-                <CustomerPortalButton className="w-full">
+                <CustomerPortalButton className="w-full" subscriptionStatus={subscriptionStatus}>
                   Manage Subscription
                 </CustomerPortalButton>
               </>
@@ -80,7 +80,7 @@ export default async function PricingPage() {
                   </div>
                 </div>
                 
-                <CustomerPortalButton className="w-full">
+                <CustomerPortalButton className="w-full" subscriptionStatus={subscriptionStatus}>
                   Manage Subscription
                 </CustomerPortalButton>
               </>

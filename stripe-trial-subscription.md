@@ -298,6 +298,47 @@ SUPABASE_SERVICE_ROLE_KEY=...  # For admin operations
 - the pricing page should not be auth-protected
 
 
+### 10. When trial ends without payment method
+referece: https://docs.stripe.com/billing/subscriptions/trials?utm_source=chatgpt.com#create-free-trials-without-payment
+
+Updated Subscription Creation (`lib/api/subscription.ts`)
+
+Added `trial_settings.end_behavior.missing_payment_method: 'cancel'` to the subscription creation:
+
+```typescript
+const subscription = await stripe.subscriptions.create({
+  customer: stripeCustomer.id,
+  items: [
+    {
+      price: 'price_1SKFb8Jn2qf03jwiNrxmKt5h',
+    },
+  ],
+  trial_end: Math.floor(Date.now() / 1000) + 60,
+  trial_settings: {
+    end_behavior: {
+      missing_payment_method: 'cancel',
+    },
+  },
+  metadata: {
+    userId: user.id,
+    userEmail: user.email!,
+  },
+});
+```
+
+
+## Manage Subscription Button Logic
+
+The "Manage Subscription" button (found on pricing page and user dropdown menu) now handles different subscription states:
+
+- **Active Trial/Incomplete Subscription**: Opens Stripe Billing Portal for payment management
+- **Canceled Subscription**: Redirects to Stripe Checkout for resubscription
+
+**Implementation Details:**
+- Create `/api/subscriptions/create-checkout-session` endpoint for resubscription
+- Updated `CustomerPortalButton` and `UserDropdown` components to check subscription status
+- Modified `AuthButton` to pass subscription status to user dropdown
+
 ## Testing Checklist
 
 1. Sign up new user and verify email
@@ -307,3 +348,4 @@ SUPABASE_SERVICE_ROLE_KEY=...  # For admin operations
 5. Use Stripe CLI to simulate subscription.updated event
 6. Test protected API after trial expires (should fail)
 7. Simulate subscription.deleted event and verify access revoked
+8. Test manage subscription button with different subscription states

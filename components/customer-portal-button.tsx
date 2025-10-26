@@ -6,24 +6,38 @@ import { useState } from 'react';
 interface CustomerPortalButtonProps {
   className?: string;
   children: React.ReactNode;
+  subscriptionStatus?: string;
 }
 
-export function CustomerPortalButton({ className, children }: CustomerPortalButtonProps) {
+export function CustomerPortalButton({ className, children, subscriptionStatus }: CustomerPortalButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleCustomerPortal = async () => {
+  const handleManageSubscription = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/customer-portal', {
-        method: 'POST',
-      });
-      const data = await response.json();
-      
-      if (data.url) {
-        window.location.href = data.url;
+      // If subscription is canceled, redirect to checkout for resubscription
+      if (subscriptionStatus === 'canceled') {
+        const response = await fetch('/api/subscriptions/create-checkout-session', {
+          method: 'POST',
+        });
+        const data = await response.json();
+        
+        if (data.checkoutUrl) {
+          window.location.href = data.checkoutUrl;
+        }
+      } else {
+        // For active trial or incomplete subscription, open billing portal
+        const response = await fetch('/api/customer-portal', {
+          method: 'POST',
+        });
+        const data = await response.json();
+        
+        if (data.url) {
+          window.location.href = data.url;
+        }
       }
     } catch (error) {
-      console.error('Error accessing customer portal:', error);
+      console.error('Error managing subscription:', error);
     } finally {
       setIsLoading(false);
     }
@@ -31,7 +45,7 @@ export function CustomerPortalButton({ className, children }: CustomerPortalButt
 
   return (
     <Button 
-      onClick={handleCustomerPortal}
+      onClick={handleManageSubscription}
       disabled={isLoading}
       className={className}
     >

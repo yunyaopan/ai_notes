@@ -35,7 +35,12 @@ export async function ensureSubscription(user: User) {
           price: 'price_1SKFb8Jn2qf03jwiNrxmKt5h',
         },
       ],
-      trial_period_days: 90,
+      trial_end: Math.floor(Date.now() / 1000) + 60,
+      trial_settings: {
+        end_behavior: {
+          missing_payment_method: 'cancel',
+        },
+      },
       metadata: {
         userId: user.id,
         userEmail: user.email!,

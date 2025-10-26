@@ -366,7 +366,7 @@ export default stripePromise;
 3. Copy the webhook signing secret from CLI output to your `.env.local`
 4. Test credit card details: 4242424242424242. CVC is any 3 digits. Date is any future date.
 5. Monitor both your application logs and Stripe CLI output for debugging
-
+to test trial expired:   stripe.subscriptions.create:    trial_end:Math.floor(Date.now() / 1000) + 60,
 For step 2&3, for production, you just need to set up the webhook endpoint in stripe portal (/api/webhook/stripe). Step 2&3 is needed for local just because Stripe can't reach your local via a publicly accessbile endpoint.
 
 ## Customer Portal Integration
