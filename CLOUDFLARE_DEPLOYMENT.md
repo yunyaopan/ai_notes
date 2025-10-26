@@ -66,6 +66,10 @@ You can also trigger deployment manually:
 1. **Authentication Error**: Make sure your `CLOUDFLARE_API_TOKEN` has the correct permissions
 2. **Account ID Error**: Verify your `CLOUDFLARE_ACCOUNT_ID` is correct
 3. **Build Failures**: Check that all tests pass and there are no TypeScript errors
+4. **Stripe Connection Error**: If you see "An error occurred with our connection to Stripe" in Cloudflare but not locally:
+   - This is because Cloudflare Workers use the Fetch API instead of Node.js HTTP
+   - The fix is already implemented in `lib/stripe/server.ts` using `httpClient: Stripe.createFetchHttpClient()`
+   - Make sure your `STRIPE_SECRET_KEY` environment variable is set as a secret in Cloudflare dashboard
 
 ### Checking Deployment Status
 

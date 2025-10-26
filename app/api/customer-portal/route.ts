@@ -26,8 +26,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error('Error creating customer portal session:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error details:', {
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return NextResponse.json(
-      { error: 'Failed to create customer portal session' },
+      { 
+        error: 'Failed to create customer portal session',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
       { status: 500 }
     );
   }
