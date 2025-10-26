@@ -45,8 +45,8 @@ export function SignUpForm({
         email,
         password,
         options: {
-          // Send verification emails to our confirm handler, then bounce to /protected
-          emailRedirectTo: `${baseUrl}/auth/confirm?next=/protected`,
+          // Send verification emails to our callback handler, then bounce to /protected
+          emailRedirectTo: `${baseUrl}/auth/callback?next=/protected`,
         },
       });
       if (error) throw error;
