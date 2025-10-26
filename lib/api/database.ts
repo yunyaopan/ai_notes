@@ -50,6 +50,22 @@ export async function getUserTextChunks(userId: string): Promise<TextChunk[]> {
   return data || [];
 }
 
+export async function getUserNoteCount(userId: string): Promise<number> {
+  const supabase = await createClient();
+  
+  const { count, error } = await supabase
+    .from('text_chunks')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Database error:', error);
+    throw new Error('Failed to fetch note count');
+  }
+
+  return count || 0;
+}
+
 export async function updateChunkPinStatus(chunkId: string, userId: string, pinned: boolean): Promise<TextChunk> {
   const supabase = await createClient();
   
