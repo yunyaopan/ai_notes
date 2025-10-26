@@ -69,7 +69,6 @@ You can also trigger deployment manually:
 4. **Stripe Connection Error**: If you see "An error occurred with our connection to Stripe" in Cloudflare but not locally:
    - This is because Cloudflare Workers use the Fetch API instead of Node.js HTTP
    - The fix is already implemented in `lib/stripe/server.ts` using `httpClient: Stripe.createFetchHttpClient()`
-   - Make sure your `STRIPE_SECRET_KEY` environment variable is set as a secret in Cloudflare dashboard
 
 ### Checking Deployment Status
 
