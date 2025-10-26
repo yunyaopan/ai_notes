@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, getBaseUrl } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,12 +40,13 @@ export function SignUpForm({
     }
 
     try {
+      const baseUrl = getBaseUrl();
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           // Send verification emails to our confirm handler, then bounce to /protected
-          emailRedirectTo: `${window.location.origin}/auth/confirm?next=/protected`,
+          emailRedirectTo: `${baseUrl}/auth/confirm?next=/protected`,
         },
       });
       if (error) throw error;
