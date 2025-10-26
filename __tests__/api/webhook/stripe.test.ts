@@ -114,7 +114,6 @@ describe('Stripe Webhook Handler', () => {
       user_id: 'user_test_123'
     });
 
-    const { POST } = await import('../../app/api/webhook/stripe/route');
     const request = new NextRequest('http://localhost:3000/api/webhook/stripe', {
       method: 'POST',
       body: JSON.stringify(mockSubscriptionCreated),
@@ -147,7 +146,6 @@ describe('Stripe Webhook Handler', () => {
       user_id: 'user_test_123'
     });
 
-    const { POST } = await import('../../app/api/webhook/stripe/route');
     const request = new NextRequest('http://localhost:3000/api/webhook/stripe', {
       method: 'POST',
       body: JSON.stringify(mockSubscriptionDeleted),
@@ -176,7 +174,6 @@ describe('Stripe Webhook Handler', () => {
       user_id: 'user_test_123'
     });
 
-    const { POST } = await import('../../app/api/webhook/stripe/route');
     const request = new NextRequest('http://localhost:3000/api/webhook/stripe', {
       method: 'POST',
       body: JSON.stringify(mockTrialWillEnd),
@@ -196,7 +193,6 @@ describe('Stripe Webhook Handler', () => {
       throw new Error('Invalid signature');
     });
 
-    const { POST } = await import('../../app/api/webhook/stripe/route');
     const request = new NextRequest('http://localhost:3000/api/webhook/stripe', {
       method: 'POST',
       body: JSON.stringify(mockSubscriptionCreated),
@@ -216,7 +212,6 @@ describe('Stripe Webhook Handler', () => {
     });
     mockDatabaseFunctions.createCustomer.mockRejectedValue(new Error('Database error'));
 
-    const { POST } = await import('../../app/api/webhook/stripe/route');
     const request = new NextRequest('http://localhost:3000/api/webhook/stripe', {
       method: 'POST',
       body: JSON.stringify(mockSubscriptionCreated),
