@@ -336,8 +336,9 @@ The "Manage Subscription" button (found on pricing page and user dropdown menu) 
 
 **Implementation Details:**
 - Create `/api/subscriptions/create-checkout-session` endpoint for resubscription
-- Updated `CustomerPortalButton` and `UserDropdown` components to check subscription status
-- Modified `AuthButton` to pass subscription status to user dropdown
+- Update `CustomerPortalButton` and `UserDropdown` components to check subscription status
+- Modify `AuthButton` to pass subscription status to user dropdown
+- **Fixed subscription success redirect**: Update checkout session to redirect to `/pricing` instead of non-existent `/subscriptions/success` page
 
 ## Testing Checklist
 

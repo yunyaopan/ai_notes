@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
           quantity: 1,
         },
       ],
-      success_url: `${request.nextUrl.origin}/subscriptions/success`,
+      success_url: `${request.nextUrl.origin}/pricing`,
       cancel_url: `${request.nextUrl.origin}/pricing?canceled=true`,
       customer: customer.stripe_customer_id, // Use existing customer
       subscription_data: {
