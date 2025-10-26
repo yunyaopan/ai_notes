@@ -274,7 +274,7 @@ This allows users to:
 
 All without re-authentication (handled server-side).
 
-### 8. Environment Variables
+### 9. Environment Variables
 
 Add to `.env.local`:
 
@@ -292,10 +292,13 @@ SUPABASE_SERVICE_ROLE_KEY=...  # For admin operations
 - All protected API routes - Add subscription checks
 
 
-### 9. Create pricing page
-- Start trial button should not lead to stripe's checkout session
-- start trial button shall lead to my app's login/sign up page
+### 10. Create pricing page
 - the pricing page should not be auth-protected
+- for unauthenticated users, just show the price and a button to 'start trial'. it shall lead to my application's signup screen
+- for authenticated users, show the price, subscription status and a 'manage subscription' button:
+  - **All other subscription status other than canceled**: Opens Stripe Billing Portal for payment management
+  - **Canceled Subscription**: Redirects to Stripe Checkout for resubscription
+  - checkout session to redirect to `/pricing` instead of non-existent `/subscriptions/success` page
 
 
 ### 10. When trial ends without payment method
@@ -313,7 +316,7 @@ const subscription = await stripe.subscriptions.create({
       price: 'price_1SKFb8Jn2qf03jwiNrxmKt5h',
     },
   ],
-  trial_end: Math.floor(Date.now() / 1000) + 60,
+  trial_end: Math.floor(Date.now() / 1000) + 120,
   trial_settings: {
     end_behavior: {
       missing_payment_method: 'cancel',
@@ -327,18 +330,7 @@ const subscription = await stripe.subscriptions.create({
 ```
 
 
-## Manage Subscription Button Logic
 
-The "Manage Subscription" button (found on pricing page and user dropdown menu) now handles different subscription states:
-
-- **Active Trial/Incomplete Subscription**: Opens Stripe Billing Portal for payment management
-- **Canceled Subscription**: Redirects to Stripe Checkout for resubscription
-
-**Implementation Details:**
-- Create `/api/subscriptions/create-checkout-session` endpoint for resubscription
-- Update `CustomerPortalButton` and `UserDropdown` components to check subscription status
-- Modify `AuthButton` to pass subscription status to user dropdown
-- **Fixed subscription success redirect**: Update checkout session to redirect to `/pricing` instead of non-existent `/subscriptions/success` page
 
 ## Testing Checklist
 

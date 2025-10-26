@@ -1,17 +1,53 @@
 import { Navigation } from '@/components/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
 import { ensureSubscription, getSubscriptionStatus, isSubscriptionOn } from '@/lib/api/subscription';
 import { CustomerPortalButton } from '@/components/customer-portal-button';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default async function PricingPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
+  // State 1: Unauthenticated users - show pricing and Start Trial button
   if (!user) {
-    redirect("/auth/login");
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        
+        <main className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold mb-4">Pricing</h1>
+            <p className="text-lg text-muted-foreground">
+              Start your 90-day free trial today
+            </p>
+          </div>
+
+          <div className="max-w-md mx-auto">
+            <div className="bg-white border rounded-lg p-6 shadow-sm">
+              <h2 className="text-xl font-semibold mb-4">Pro Plan</h2>
+              <div className="text-3xl font-bold mb-2">$9.99</div>
+              <div className="text-muted-foreground mb-6">per month</div>
+              
+              <ul className="space-y-2 mb-6">
+                <li>✓ 90-day free trial</li>
+                <li>✓ Unlimited text categorization</li>
+                <li>✓ Advanced AI features</li>
+                <li>✓ Priority support</li>
+                <li>✓ Export capabilities</li>
+              </ul>
+              
+              <Button asChild className="w-full" size="lg">
+                <Link href="/auth/sign-up">Start Trial</Link>
+              </Button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
   }
   
+  // States 2 & 3: Authenticated users
   // Ensure subscription exists (creates one if first time accessing)
   await ensureSubscription(user);
   
