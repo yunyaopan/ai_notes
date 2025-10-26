@@ -41,6 +41,13 @@ This is your Cloudflare Account ID.
    - Name: `CLOUDFLARE_API_TOKEN`, Value: [your API token]
    - Name: `CLOUDFLARE_ACCOUNT_ID`, Value: [your account ID]
 
+## GitHub Actions Environment Variables
+
+The deployment workflow requires both **Secrets** and **Variables**:
+
+- if you reference an env var as secrets.xxx in deploy.yml, you need to create the env var in github actions as secrets
+- similarly, if you reference an env var as var.xxx in deploy.yml, you need to create it as variables
+
 ## How it Works
 
 The deployment workflow (`.github/workflows/deploy.yml`) will:
