@@ -15,7 +15,7 @@ The deployment workflow requires both **Secrets** and **Variables**:
 ```
 [observability]
 enabled = true
-head_sampling_rate = 100
+head_sampling_rate = 1 #must be a value between 0 and 1
 invocation_logs = true
 persist = true
 ```
