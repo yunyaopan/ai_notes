@@ -13,6 +13,9 @@
     "prepare": "husky",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "deploy:dev": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --no-bundle",
+    "deploy:uat": "opennextjs-cloudflare build --env uat && wrangler deploy --env uat",
+    "deploy:prod": "opennextjs-cloudflare build --env prod && wrangler deploy --env prod",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {

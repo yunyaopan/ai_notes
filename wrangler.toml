@@ -10,5 +10,38 @@ binding = "ASSETS"
 [observability]
 enabled = true
 head_sampling_rate = 1
-invocation_logs = true
-persist = true
+
+# Default environment (optional)
+[vars]
+ENVIRONMENT = "dev"
+
+[env.uat]
+# to manually deploy:  npm run deploy:uat 
+# Custom domain: write.uat.slowstack.cc
+routes = [
+  { pattern = "write.uat.slowstack.cc", zone_name = "slowstack.cc", custom_domain = true},
+  { pattern = "www.write.uat.slowstack.cc", zone_name = "slowstack.cc", custom_domain = true }
+]
+# Note: Secrets must be set via: wrangler secret put SECRET_NAME --env uat
+
+[env.uat.vars]
+NEXT_PUBLIC_SUPABASE_URL="https://yxgeebutldipbsqksotd.supabase.co"
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4Z2VlYnV0bGRpcGJzcWtzb3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5MjI3MjAsImV4cCI6MjA3MDQ5ODcyMH0.wJfbBxi7mRzQmrOS0h9YOoU_9nKzw2h-UcytbQEgv3c"
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_51SHFo2Jn2qf03jwiSiRHerYus4RwHKd0uLeHNyHMR3D9rJ393B9tSyrDaCuk1Jowkrx1JrMD3OxfvpWBTRLjZACv007Zz3dGDY"
+NEXT_PUBLIC_SITE_URL="write.uat.slowstack.cc"
+
+[env.prod]
+# to manually deploy: npm run deploy:prod
+# deploy with: npx wrangler deploy --env prod
+# Custom domain: write.slowstack.cc
+routes = [
+  { pattern = "write.slowstack.cc", zone_name = "slowstack.cc", custom_domain = true},
+  { pattern = "www.write.slowstack.cc", zone_name = "slowstack.cc", custom_domain = true}
+]
+# Note: Secrets must be set via: wrangler secret put SECRET_NAME --env production
+
+[env.prod.vars]
+NEXT_PUBLIC_SUPABASE_URL = "https://yxgeebutldipbsqksotd.supabase.co"
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4Z2VlYnV0bGRpcGJzcWtzb3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5MjI3MjAsImV4cCI6MjA3MDQ5ODcyMH0.wJfbBxi7mRzQmrOS0h9YOoU_9nKzw2h-UcytbQEgv3c"
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = "pk_live_51SHFnqJRJlz9rLh1cexv2Jf8rK8sp6Upc93StUvWRBer27EtpUKSfT6093Dw46S9kMIG5yB1wZhEmt4su6ogt08N002BW8a8Cs"
+NEXT_PUBLIC_SITE_URL="write.slowstack.cc"
