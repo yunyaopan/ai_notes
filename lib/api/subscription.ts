@@ -6,6 +6,35 @@ import { User } from '@supabase/supabase-js';
 export { getCustomerByUserId } from './database';
 
 /**
+ * Gets the trial period duration in seconds based on environment.
+ * - local/dev: 2 minutes (120 seconds)
+ * - uat: 2 minutes (120 seconds)
+ * - prod: 90 days (7,776,000 seconds)
+ * Can be overridden with TRIAL_PERIOD_SECONDS environment variable.
+ */
+function getTrialPeriodSeconds(): number {
+  // Check if explicitly set via environment variable
+  if (process.env.TRIAL_PERIOD_SECONDS) {
+    const period = parseInt(process.env.TRIAL_PERIOD_SECONDS, 10);
+    if (!isNaN(period) && period > 0) {
+      return period;
+    }
+  }
+
+  // Determine environment
+  const env = process.env.ENVIRONMENT || process.env.NODE_ENV || 'development';
+  
+  // Return based on environment
+  if (env === 'prod' || env === 'production') {
+    // 90 days in seconds
+    return 90 * 24 * 60 * 60; // 7,776,000 seconds
+  }
+  
+  // Default to 2 minutes for local/dev/uat
+  return 2 * 60; // 120 seconds
+}
+
+/**
  * Ensures a subscription exists for the user. Creates one if it doesn't exist.
  * This function handles both email signup and social login scenarios.
  */
@@ -28,6 +57,7 @@ export async function ensureSubscription(user: User) {
     });
 
     // Create Stripe subscription with trial
+    const trialPeriodSeconds = getTrialPeriodSeconds();
     const subscription = await stripe.subscriptions.create({
       customer: stripeCustomer.id,
       items: [
@@ -35,7 +65,7 @@ export async function ensureSubscription(user: User) {
           price: 'price_1SKFb8Jn2qf03jwiNrxmKt5h',
         },
       ],
-      trial_end: Math.floor(Date.now() / 1000) + 60,
+      trial_end: Math.floor(Date.now() / 1000) + trialPeriodSeconds,
       trial_settings: {
         end_behavior: {
           missing_payment_method: 'cancel',
