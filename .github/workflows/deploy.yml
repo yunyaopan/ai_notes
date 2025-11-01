@@ -35,12 +35,18 @@ jobs:
     - name: Deploy to UAT
       run: npm run deploy:uat
       env:
+    # must reference the secrets in the github actions secrets. put dummy values.
         CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
         STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
         SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+        NEXT_PUBLIC_SUPABASE_URL: "https://yxgeebutldipbsqksotd.supabase.co"
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4Z2VlYnV0bGRpcGJzcWtzb3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5MjI3MjAsImV4cCI6MjA3MDQ5ODcyMH0.wJfbBxi7mRzQmrOS0h9YOoU_9nKzw2h-UcytbQEgv3c"
+        NEXT_PUBLIC_SITE_URL: "write.uat.slowstack.cc"
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_51SHFo2Jn2qf03jwiSiRHerYus4RwHKd0uLeHNyHMR3D9rJ393B9tSyrDaCuk1Jowkrx1JrMD3OxfvpWBTRLjZACv007Zz3dGDY"
 
   deploy-prod:
     name: Deploy to Production
@@ -86,4 +92,3 @@ jobs:
         STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
         STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
         NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
