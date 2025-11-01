@@ -12,6 +12,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    if (!process.env.STRIPE_PRICE_ID) {
+      return NextResponse.json({ error: 'STRIPE_PRICE_ID environment variable is not configured' }, { status: 500 });
+    }
+
     // Get existing customer
     const customer = await getCustomerByUserId(user.id);
     
@@ -25,7 +29,7 @@ export async function POST(request: NextRequest) {
       payment_method_types: ['card'],
       line_items: [
         {
-          price: 'price_1SKFb8Jn2qf03jwiNrxmKt5h', // Pro plan price
+          price: process.env.STRIPE_PRICE_ID,
           quantity: 1,
         },
       ],

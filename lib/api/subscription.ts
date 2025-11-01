@@ -46,6 +46,10 @@ export async function ensureSubscription(user: User) {
     return customer;
   }
 
+  if (!process.env.STRIPE_PRICE_ID) {
+    throw new Error('STRIPE_PRICE_ID environment variable is not configured');
+  }
+
   try {
     // Create Stripe customer
     const stripeCustomer = await stripe.customers.create({
@@ -62,7 +66,7 @@ export async function ensureSubscription(user: User) {
       customer: stripeCustomer.id,
       items: [
         {
-          price: 'price_1SKFb8Jn2qf03jwiNrxmKt5h',
+          price: process.env.STRIPE_PRICE_ID,
         },
       ],
       trial_end: Math.floor(Date.now() / 1000) + trialPeriodSeconds,
