@@ -14,4 +14,4 @@ migrating data is not easy. not sure if you can migrate the authentication data 
 ## other things to update
 - the trial expirying date of stripe
 - the webhook url in stripe
-- the auth callback url need to update
+- the auth callback url in supabase need to update

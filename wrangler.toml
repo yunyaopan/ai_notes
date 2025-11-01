@@ -42,8 +42,8 @@ routes = [
 # Note: Secrets must be set via: wrangler secret put SECRET_NAME --env production
 
 [env.prod.vars]
-NEXT_PUBLIC_SUPABASE_URL = "https://yxgeebutldipbsqksotd.supabase.co"
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4Z2VlYnV0bGRpcGJzcWtzb3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5MjI3MjAsImV4cCI6MjA3MDQ5ODcyMH0.wJfbBxi7mRzQmrOS0h9YOoU_9nKzw2h-UcytbQEgv3c"
+NEXT_PUBLIC_SUPABASE_URL = "https://fgdhlcpsrzamjeittnal.supabase.co"
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnZGhsY3BzcnphbWplaXR0bmFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2OTA3OTAsImV4cCI6MjA3NzI2Njc5MH0.fgn_BkBwLL5qHhAFo7CY3JWz3hG_c-J40edXkhIetqs"
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = "pk_live_51SHFnqJRJlz9rLh1cexv2Jf8rK8sp6Upc93StUvWRBer27EtpUKSfT6093Dw46S9kMIG5yB1wZhEmt4su6ogt08N002BW8a8Cs"
 NEXT_PUBLIC_SITE_URL="write.slowstack.cc"
 TRIAL_PERIOD_SECONDS="7776000"
