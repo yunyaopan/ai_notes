@@ -18,8 +18,9 @@ import { useState } from "react";
 
 export function SignUpForm({
   className,
+  signupAction,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: React.ComponentPropsWithoutRef<"div"> & { signupAction?: (formData: FormData) => Promise<void> }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
@@ -58,6 +59,8 @@ export function SignUpForm({
     }
   };
 
+  const formProps = signupAction ? { action: signupAction } : { onSubmit: handleSignUp };
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -66,7 +69,7 @@ export function SignUpForm({
           <CardDescription>Create a new account</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSignUp}>
+          <form {...formProps}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
@@ -75,6 +78,7 @@ export function SignUpForm({
                   type="email"
                   placeholder="m@example.com"
                   required
+                  name="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -87,6 +91,7 @@ export function SignUpForm({
                   id="password"
                   type="password"
                   required
+                  name="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />

@@ -15,3 +15,7 @@ migrating data is not easy. not sure if you can migrate the authentication data 
 - the trial expirying date of stripe
 - the webhook url in stripe
 - the auth callback url in supabase need to update
+- price id of stripe
+
+
+everything for local and uat is shared except for the site URL in supabase uat project
