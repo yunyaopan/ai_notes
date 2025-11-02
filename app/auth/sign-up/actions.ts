@@ -11,6 +11,17 @@ export async function signup(formData: FormData) {
 
   const email = formData.get('email') as string
   const password = formData.get('password') as string
+  const repeatPassword = formData.get('repeat-password') as string
+
+  // Validate password match
+  if (password !== repeatPassword) {
+    redirect('/auth/error?error=Passwords do not match')
+  }
+
+  // Validate email and password are provided
+  if (!email || !password) {
+    redirect('/auth/error?error=Email and password are required')
+  }
 
   const baseUrl = getBaseUrl()
 
@@ -23,7 +34,7 @@ export async function signup(formData: FormData) {
   })
 
   if (error) {
-    redirect('/auth/error')
+    redirect(`/auth/error?error=${encodeURIComponent(error.message)}`)
   }
 
   revalidatePath('/', 'layout')
