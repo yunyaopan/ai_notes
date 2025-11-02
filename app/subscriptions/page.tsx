@@ -5,6 +5,7 @@ import { ensureSubscription, getSubscriptionStatus, isSubscriptionOn } from '@/l
 import { CustomerPortalButton } from '@/components/customer-portal-button';
 import { getUserNoteCount } from '@/lib/api/database';
 import { SubscriptionsClient } from './subscriptions-client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default async function SubscriptionsPage({
   searchParams,
@@ -46,57 +47,62 @@ export default async function SubscriptionsPage({
         </div>
 
         <div className="max-w-md mx-auto">
-          <div className="bg-white border rounded-lg p-6 shadow-sm">
-            {hasAccess ? (
-              // Active subscription - show status and manage button
-              <>
-                <h2 className="text-xl font-semibold mb-4">Current Subscription</h2>
-                <div className="mb-4">
-                  <div className="text-lg font-medium capitalize">
-                    Status: {subscriptionStatus === 'trialing' ? 'Active - Trial' : 'Active'}
-                  </div>
-                  {subscriptionStatus === 'trialing' && (
-                    <div className="text-sm text-muted-foreground mt-1">
-                      90-day trial period
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">
+                {hasAccess ? 'Current Subscription' : 'Subscription Status'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {hasAccess ? (
+                // Active subscription - show status and manage button
+                <>
+                  <div>
+                    <div className="text-lg font-medium capitalize text-foreground">
+                      Status: {subscriptionStatus === 'trialing' ? 'Active - Trial' : 'Active'}
                     </div>
-                  )}
-                </div>
-                
-                <CustomerPortalButton className="w-full">
-                  Manage Subscription
-                </CustomerPortalButton>
-              </>
-            ) : (
-              // Inactive subscription - show status and reactivate button
-              <>
-                <h2 className="text-xl font-semibold mb-4">Subscription Status</h2>
-                <div className="mb-4">
-                  <div className="text-lg font-medium capitalize text-red-600">
-                    Status: {subscriptionStatus}
+                    {subscriptionStatus === 'trialing' && (
+                      <div className="text-sm text-muted-foreground mt-1">
+                        90-day trial period
+                      </div>
+                    )}
                   </div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    Active subscription required to access protected features
-                  </div>
-                </div>
-                
-                {showTrialMessage && (
-                  <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-900">
-                      During your trial period, you have accumulated <strong>{noteCount}</strong> note{noteCount !== 1 ? 's' : ''} with MindSort.
-                    </p>
-                  </div>
-                )}
-                
-                {showTrialMessage ? (
-                  <SubscriptionsClient />
-                ) : (
+                  
                   <CustomerPortalButton className="w-full">
                     Manage Subscription
                   </CustomerPortalButton>
-                )}
-              </>
-            )}
-          </div>
+                </>
+              ) : (
+                // Inactive subscription - show status and reactivate button
+                <>
+                  <div>
+                    <div className="text-lg font-medium capitalize text-destructive">
+                      Status: {subscriptionStatus}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      Active subscription required to access protected features
+                    </div>
+                  </div>
+                  
+                  {showTrialMessage && (
+                    <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <p className="text-sm text-blue-900 dark:text-blue-100">
+                        During your trial period, you have accumulated <strong>{noteCount}</strong> note{noteCount !== 1 ? 's' : ''} with MindSort.
+                      </p>
+                    </div>
+                  )}
+                  
+                  {showTrialMessage ? (
+                    <SubscriptionsClient />
+                  ) : (
+                    <CustomerPortalButton className="w-full">
+                      Manage Subscription
+                    </CustomerPortalButton>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>

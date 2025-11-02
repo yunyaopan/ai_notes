@@ -128,7 +128,7 @@ export function PriorityOverlay({
       onClick={onClose}
     >
       <div 
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+        className="bg-card text-card-foreground rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b">
@@ -157,8 +157,8 @@ export function PriorityOverlay({
                       <div className="flex-1">
                         <p className="text-sm">{chunk.content}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <Clock className="h-3 w-3 text-gray-400" />
-                          <span className="text-xs text-gray-500">
+                          <Clock className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">
                             {new Date(chunk.created_at || '').toLocaleDateString()}
                           </span>
                         </div>
@@ -184,8 +184,8 @@ export function PriorityOverlay({
                       <div className="flex-1">
                         <p className="text-sm">{chunk.content}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <Clock className="h-3 w-3 text-gray-400" />
-                          <span className="text-xs text-gray-500">
+                          <Clock className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">
                             {new Date(chunk.created_at || '').toLocaleDateString()}
                           </span>
                         </div>
@@ -211,8 +211,8 @@ export function PriorityOverlay({
                       <div className="flex-1">
                         <p className="text-sm">{chunk.content}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <Clock className="h-3 w-3 text-gray-400" />
-                          <span className="text-xs text-gray-500">
+                          <Clock className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">
                             {new Date(chunk.created_at || '').toLocaleDateString()}
                           </span>
                         </div>
@@ -238,8 +238,8 @@ export function PriorityOverlay({
                       <div className="flex-1">
                         <p className="text-sm text-gray-600 dark:text-gray-400">{chunk.content}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <Clock className="h-3 w-3 text-gray-400" />
-                          <span className="text-xs text-gray-500">
+                          <Clock className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">
                             {new Date(chunk.created_at || '').toLocaleDateString()}
                           </span>
                         </div>
@@ -265,8 +265,8 @@ export function PriorityOverlay({
                       <div className="flex-1">
                         <p className="text-sm">{chunk.content}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <Clock className="h-3 w-3 text-gray-400" />
-                          <span className="text-xs text-gray-500">
+                          <Clock className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">
                             {new Date(chunk.created_at || '').toLocaleDateString()}
                           </span>
                         </div>
@@ -280,8 +280,8 @@ export function PriorityOverlay({
 
             {/* Empty state */}
             {localChunks.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <Tag className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <div className="text-center py-8 text-muted-foreground">
+                <Tag className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
                 <p>No {categoryLabel.toLowerCase()} found.</p>
               </div>
             )}

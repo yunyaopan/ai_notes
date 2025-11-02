@@ -1,5 +1,6 @@
 import { Navigation } from '@/components/navigation';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 
 export default function PaymentSuccessPage() {
@@ -10,9 +11,9 @@ export default function PaymentSuccessPage() {
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="text-center">
           <div className="mb-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg 
-                className="w-8 h-8 text-green-600" 
+                className="w-8 h-8 text-green-600 dark:text-green-400" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -25,7 +26,7 @@ export default function PaymentSuccessPage() {
                 />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-green-600 mb-4">
+            <h1 className="text-3xl font-bold text-green-600 dark:text-green-400 mb-4">
               Payment Successful!
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
@@ -33,25 +34,29 @@ export default function PaymentSuccessPage() {
             </p>
           </div>
 
-          <div className="bg-white border rounded-lg p-6 shadow-sm max-w-md mx-auto">
-            <h2 className="text-xl font-semibold mb-4">Welcome to Pro!</h2>
-            <p className="text-muted-foreground mb-6">
-              Your subscription is now active. You can start enjoying all the premium features.
-            </p>
-            
-            <div className="space-y-3">
-              <Link href="/protected">
-                <Button className="w-full">
-                  Go to Dashboard
-                </Button>
-              </Link>
-              <Link href="/pricing">
-                <Button variant="outline" className="w-full">
-                  View Pricing
-                </Button>
-              </Link>
-            </div>
-          </div>
+          <Card className="max-w-md mx-auto">
+            <CardHeader>
+              <CardTitle className="text-2xl">Welcome to Pro!</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <p className="text-muted-foreground">
+                Your subscription is now active. You can start enjoying all the premium features.
+              </p>
+              
+              <div className="space-y-3">
+                <Link href="/protected">
+                  <Button className="w-full">
+                    Go to Dashboard
+                  </Button>
+                </Link>
+                <Link href="/pricing">
+                  <Button variant="outline" className="w-full">
+                    View Pricing
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>

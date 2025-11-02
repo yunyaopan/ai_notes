@@ -15,13 +15,13 @@ export function GrumpyFaceDemo() {
   const getIntensityColor = (intensity: 'low' | 'medium' | 'high') => {
     switch (intensity) {
       case 'low':
-        return 'bg-green-100 text-green-800 hover:bg-green-200';
+        return 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-900/30';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
+        return 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 hover:bg-yellow-200 dark:hover:bg-yellow-900/30';
       case 'high':
-        return 'bg-red-100 text-red-800 hover:bg-red-200';
+        return 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 hover:bg-red-200 dark:hover:bg-red-900/30';
       default:
-        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+        return 'bg-secondary text-secondary-foreground hover:bg-secondary/80';
     }
   };
 
@@ -52,14 +52,14 @@ export function GrumpyFaceDemo() {
         </div>
 
         {selectedIntensity && (
-          <div className="space-y-3 p-4 border rounded-lg bg-gray-50">
+          <div className="space-y-3 p-4 border rounded-lg bg-secondary/50">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Selected Intensity:</span>
+              <span className="text-sm font-medium text-foreground">Selected Intensity:</span>
               <Badge className={getIntensityColor(selectedIntensity)}>
                 {selectedIntensity.charAt(0).toUpperCase() + selectedIntensity.slice(1)}
               </Badge>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               {getIntensityDescription(selectedIntensity)}
             </p>
           </div>

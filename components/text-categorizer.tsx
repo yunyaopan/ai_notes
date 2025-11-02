@@ -133,7 +133,7 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
                       {emotionalIntensity.charAt(0).toUpperCase() + emotionalIntensity.slice(1)} intensity
                     </Badge>
                   ) : (
-                    <p className="text-xs text-muted-foreground bg-white/90 px-2 py-1 rounded shadow-sm">
+                    <p className="text-xs text-muted-foreground bg-background/90 backdrop-blur-sm px-2 py-1 rounded shadow-sm border border-border/50">
                       How are you feeling?
                     </p>
                   )}
