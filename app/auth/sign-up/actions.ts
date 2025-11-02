@@ -41,4 +41,24 @@ export async function signup(formData: FormData) {
   redirect('/auth/sign-up-success')
 }
 
+export async function signUpWithGoogle() {
+  const supabase = await createClient()
+  const baseUrl = getBaseUrl()
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${baseUrl}/auth/callback`,
+    },
+  })
+
+  if (error) {
+    redirect('/auth/error')
+  }
+
+  if (data.url) {
+    redirect(data.url)
+  }
+}
+
 
