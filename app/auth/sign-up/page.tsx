@@ -27,7 +27,7 @@ export default function SignupPage() {
           src="/images/login.png"
           alt="MindSort"
           fill
-          className="object-cover dark:brightness-[0.2] dark:grayscale"
+          className="object-cover"
         />
       </div>
     </div>
