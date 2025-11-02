@@ -4,21 +4,19 @@ import { cn, getBaseUrl } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
 
-type SignUpFormProps = React.ComponentPropsWithoutRef<"div"> & {
+type SignUpFormProps = React.ComponentProps<"form"> & {
   signupAction?: (formData: FormData) => Promise<void>;
 };
 
@@ -41,8 +39,8 @@ function FormInputs({
 
   return (
     <>
-      <div className="grid gap-2">
-        <Label htmlFor="email">Email</Label>
+      <Field>
+        <FieldLabel htmlFor="email">Email</FieldLabel>
         <Input
           id="email"
           type="email"
@@ -53,11 +51,13 @@ function FormInputs({
           onChange={(e) => setEmail(e.target.value)}
           disabled={pending}
         />
-      </div>
-      <div className="grid gap-2">
-        <div className="flex items-center">
-          <Label htmlFor="password">Password</Label>
-        </div>
+        <FieldDescription>
+          We&apos;ll use this to contact you. We will not share your email
+          with anyone else.
+        </FieldDescription>
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="password">Password</FieldLabel>
         <Input
           id="password"
           type="password"
@@ -67,11 +67,12 @@ function FormInputs({
           onChange={(e) => setPassword(e.target.value)}
           disabled={pending}
         />
-      </div>
-      <div className="grid gap-2">
-        <div className="flex items-center">
-          <Label htmlFor="repeat-password">Repeat Password</Label>
-        </div>
+        <FieldDescription>
+          Must be at least 8 characters long.
+        </FieldDescription>
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="repeat-password">Confirm Password</FieldLabel>
         <Input
           id="repeat-password"
           type="password"
@@ -81,7 +82,8 @@ function FormInputs({
           onChange={(e) => setRepeatPassword(e.target.value)}
           disabled={pending}
         />
-      </div>
+        <FieldDescription>Please confirm your password.</FieldDescription>
+      </Field>
     </>
   );
 }
@@ -90,16 +92,18 @@ function SubmitButton() {
   const { pending } = useFormStatus();
 
   return (
-    <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Creating an account...
-        </>
-      ) : (
-        "Sign up"
-      )}
-    </Button>
+    <Field>
+      <Button type="submit" className="w-full" disabled={pending}>
+        {pending ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Creating an account...
+          </>
+        ) : (
+          "Create Account"
+        )}
+      </Button>
+    </Field>
   );
 }
 
@@ -147,97 +151,106 @@ export function SignUpForm({
   };
 
   const formProps = signupAction
-    ? { action: signupAction }
-    : { onSubmit: handleSignUp };
+    ? { action: signupAction, className: cn("flex flex-col gap-6", className) }
+    : { onSubmit: handleSignUp, className: cn("flex flex-col gap-6", className) };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Sign up</CardTitle>
-          <CardDescription>Create a new account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form {...formProps}>
-            <div className="flex flex-col gap-6">
-              {signupAction ? (
-                <FormInputs
-                  email={email}
-                  password={password}
-                  repeatPassword={repeatPassword}
-                  setEmail={setEmail}
-                  setPassword={setPassword}
-                  setRepeatPassword={setRepeatPassword}
-                />
-              ) : (
+    <form {...formProps} {...props}>
+      <FieldGroup>
+        <div className="flex flex-col items-center gap-1 text-center">
+          <h1 className="text-2xl font-bold">Create your account</h1>
+          <p className="text-muted-foreground text-sm text-balance">
+            Fill in the form below to create your account
+          </p>
+        </div>
+        {signupAction ? (
+          <FormInputs
+            email={email}
+            password={password}
+            repeatPassword={repeatPassword}
+            setEmail={setEmail}
+            setPassword={setPassword}
+            setRepeatPassword={setRepeatPassword}
+          />
+        ) : (
+          <>
+            <Field>
+              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                required
+                name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+              />
+              <FieldDescription>
+                We&apos;ll use this to contact you. We will not share your email
+                with anyone else.
+              </FieldDescription>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <Input
+                id="password"
+                type="password"
+                required
+                name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+              />
+              <FieldDescription>
+                Must be at least 8 characters long.
+              </FieldDescription>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="repeat-password">Confirm Password</FieldLabel>
+              <Input
+                id="repeat-password"
+                type="password"
+                required
+                name="repeat-password"
+                value={repeatPassword}
+                onChange={(e) => setRepeatPassword(e.target.value)}
+                disabled={isLoading}
+              />
+              <FieldDescription>Please confirm your password.</FieldDescription>
+            </Field>
+          </>
+        )}
+        {error && (
+          <Field>
+            <p className="text-sm text-red-500">{error}</p>
+          </Field>
+        )}
+        {signupAction ? (
+          <SubmitButton />
+        ) : (
+          <Field>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
                 <>
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="m@example.com"
-                      required
-                      name="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <div className="flex items-center">
-                      <Label htmlFor="password">Password</Label>
-                    </div>
-                    <Input
-                      id="password"
-                      type="password"
-                      required
-                      name="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <div className="flex items-center">
-                      <Label htmlFor="repeat-password">Repeat Password</Label>
-                    </div>
-                    <Input
-                      id="repeat-password"
-                      type="password"
-                      required
-                      value={repeatPassword}
-                      onChange={(e) => setRepeatPassword(e.target.value)}
-                      disabled={isLoading}
-                    />
-                  </div>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating an account...
                 </>
-              )}
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              {signupAction ? (
-                <SubmitButton />
               ) : (
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating an account...
-                    </>
-                  ) : (
-                    "Sign up"
-                  )}
-                </Button>
+                "Create Account"
               )}
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Already have an account?{" "}
-              <Link href="/auth/login" className="underline underline-offset-4">
-                Login
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+            </Button>
+          </Field>
+        )}
+        <Field>
+          <FieldDescription className="text-center">
+            Already have an account?{" "}
+            <Link href="/auth/login" className="underline underline-offset-4">
+              Sign in
+            </Link>
+          </FieldDescription>
+        </Field>
+      </FieldGroup>
+    </form>
   );
 }
