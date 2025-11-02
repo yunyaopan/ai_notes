@@ -181,7 +181,18 @@ export async function createCustomer(customerData: Omit<Customer, 'id' | 'create
 
   if (error) {
     console.error('Database error creating customer:', error);
-    throw new Error('Failed to create customer');
+    // Check if it's a unique constraint violation (PostgreSQL error code 23505)
+    if (error.code === '23505') {
+      console.log(`Unique constraint violation: Customer with user_id ${customerData.user_id} or stripe_customer_id ${customerData.stripe_customer_id} already exists`);
+      // Try to fetch and return the existing customer
+      const existing = await getCustomerByUserId(customerData.user_id);
+      if (existing) {
+        console.log(`Returning existing customer record for user_id ${customerData.user_id}`);
+        return existing;
+      }
+    }
+    // Throw the original error object to preserve error details
+    throw error;
   }
 
   return data;

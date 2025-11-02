@@ -1,6 +1,7 @@
 import { stripe } from '@/lib/stripe/server';
 import { createCustomer, getCustomerByUserId, updateUserSubscriptionMetadata } from './database';
 import { User } from '@supabase/supabase-js';
+import Stripe from 'stripe';
 
 // Re-export getCustomerByUserId for convenience
 export { getCustomerByUserId } from './database';
@@ -37,6 +38,7 @@ function getTrialPeriodSeconds(): number {
 /**
  * Ensures a subscription exists for the user. Creates one if it doesn't exist.
  * This function handles both email signup and social login scenarios.
+ * Includes race condition handling to prevent duplicate customers.
  */
 export async function ensureSubscription(user: User) {
   // Check if customer record already exists
@@ -51,43 +53,110 @@ export async function ensureSubscription(user: User) {
   }
 
   try {
-    // Create Stripe customer
-    const stripeCustomer = await stripe.customers.create({
+    // Check for existing Stripe customer by email to avoid duplicates
+    const existingCustomers = await stripe.customers.list({
       email: user.email!,
-      metadata: {
-        userId: user.id,
-        userEmail: user.email!,
-      },
+      limit: 1,
     });
 
-    // Create Stripe subscription with trial
-    const trialPeriodSeconds = getTrialPeriodSeconds();
-    const subscription = await stripe.subscriptions.create({
+    let stripeCustomer: Stripe.Customer;
+    
+    if (existingCustomers.data.length > 0) {
+      // Use existing Stripe customer
+      stripeCustomer = existingCustomers.data[0];
+      console.log(`Using existing Stripe customer ${stripeCustomer.id} for user ${user.id}`);
+      
+      // Update metadata to ensure userId is set
+      if (stripeCustomer.metadata?.userId !== user.id) {
+        stripeCustomer = await stripe.customers.update(stripeCustomer.id, {
+          metadata: {
+            userId: user.id,
+            userEmail: user.email!,
+          },
+        });
+      }
+    } else {
+      // Create new Stripe customer
+      stripeCustomer = await stripe.customers.create({
+        email: user.email!,
+        metadata: {
+          userId: user.id,
+          userEmail: user.email!,
+        },
+      });
+      console.log(`Created new Stripe customer ${stripeCustomer.id} for user ${user.id}`);
+    }
+
+    // Check if this customer already has an active subscription
+    const existingSubscriptions = await stripe.subscriptions.list({
       customer: stripeCustomer.id,
-      items: [
-        {
-          price: process.env.STRIPE_PRICE_ID,
-        },
-      ],
-      trial_end: Math.floor(Date.now() / 1000) + trialPeriodSeconds,
-      trial_settings: {
-        end_behavior: {
-          missing_payment_method: 'cancel',
-        },
-      },
-      metadata: {
-        userId: user.id,
-        userEmail: user.email!,
-      },
+      status: 'all',
+      limit: 1,
     });
 
-    // Create customer record in database
-    customer = await createCustomer({
-      stripe_customer_id: stripeCustomer.id,
-      subscription_status: subscription.status,
-      email: user.email!,
-      user_id: user.id,
-    });
+    let subscription: Stripe.Subscription;
+    
+    if (existingSubscriptions.data.length > 0) {
+      // Use existing subscription
+      subscription = existingSubscriptions.data[0];
+      console.log(`Using existing subscription ${subscription.id} for customer ${stripeCustomer.id}`);
+      
+      // Update subscription metadata to ensure userId is set
+      if (subscription.metadata?.userId !== user.id) {
+        subscription = await stripe.subscriptions.update(subscription.id, {
+          metadata: {
+            userId: user.id,
+            userEmail: user.email!,
+          },
+        });
+      }
+    } else {
+      // Create Stripe subscription with trial
+      const trialPeriodSeconds = getTrialPeriodSeconds();
+      subscription = await stripe.subscriptions.create({
+        customer: stripeCustomer.id,
+        items: [
+          {
+            price: process.env.STRIPE_PRICE_ID,
+          },
+        ],
+        trial_end: Math.floor(Date.now() / 1000) + trialPeriodSeconds,
+        trial_settings: {
+          end_behavior: {
+            missing_payment_method: 'cancel',
+          },
+        },
+        metadata: {
+          userId: user.id,
+          userEmail: user.email!,
+        },
+      });
+      console.log(`Created new subscription ${subscription.id} for customer ${stripeCustomer.id}`);
+    }
+
+    // Try to create customer record in database
+    // This might fail due to race condition if another request created it
+    try {
+      customer = await createCustomer({
+        stripe_customer_id: stripeCustomer.id,
+        subscription_status: subscription.status,
+        email: user.email!,
+        user_id: user.id,
+      });
+    } catch (dbError: unknown) {
+      // If it's a unique constraint violation, fetch the existing customer
+      const error = dbError as { code?: string; message?: string };
+      if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique constraint')) {
+        console.log(`Customer record already exists for user ${user.id}, fetching existing record...`);
+        customer = await getCustomerByUserId(user.id);
+        if (!customer) {
+          throw new Error('Failed to fetch existing customer after race condition');
+        }
+        return customer;
+      }
+      // Re-throw other errors
+      throw dbError;
+    }
 
     // Update user app_metadata
     await updateUserSubscriptionMetadata(user.id, subscription.status);
