@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
+import Image from 'next/image';
 
 interface GrumpyFaceSelectorProps {
   onSelect?: (intensity: 'low' | 'medium' | 'high') => void;
@@ -24,35 +25,27 @@ export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelec
     setShowSelector(false);
   };
 
-  const GrumpyFace = ({ size = 100, className = '' }: { size?: number; className?: string }) => (
-    <svg 
-      width={size} 
-      height={size} 
-      viewBox="0 0 200 200" 
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-    >
-      {/* Main face shape */}
-      <path d="M60 60 Q40 60 40 80 Q30 100 30 110 Q30 120 40 140 Q40 160 60 160 Q80 170 100 160 Q120 170 140 160 Q160 160 160 140 Q170 120 170 110 Q170 100 160 80 Q160 60 140 60 Q120 50 100 60 Q80 50 60 60 Z" fill="#FFA500" stroke="none"/>
-      
-      {/* Hair/eyebrow strokes on top */}
-      <path d="M60 45 Q80 35 100 45" stroke="#2C2C2C" strokeWidth="3" fill="none" strokeLinecap="round"/>
-      <path d="M100 45 Q120 35 140 45" stroke="#2C2C2C" strokeWidth="3" fill="none" strokeLinecap="round"/>
-      
-      {/* Glasses frame */}
-      <circle cx="75" cy="90" r="18" fill="none" stroke="#2C2C2C" strokeWidth="2.5"/>
-      <circle cx="125" cy="90" r="18" fill="none" stroke="#2C2C2C" strokeWidth="2.5"/>
-      
-      {/* Glasses bridge */}
-      <line x1="93" y1="90" x2="107" y2="90" stroke="#2C2C2C" strokeWidth="2.5"/>
-      
-      {/* Eyes (pupils) */}
-      <circle cx="75" cy="90" r="4" fill="#2C2C2C"/>
-      <circle cx="125" cy="90" r="4" fill="#2C2C2C"/>
-      
-      {/* Sad mouth */}
-      <path d="M85 130 Q100 120 115 130" stroke="#2C2C2C" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-    </svg>
+  const getImageSrc = (intensity: 'low' | 'medium' | 'high', transparent = false) => {
+    const suffix = transparent ? '_t' : '';
+    switch (intensity) {
+      case 'low':
+        return `/images/mild${suffix}.png`;
+      case 'medium':
+        return `/images/moderate${suffix}.png`;
+      case 'high':
+        return `/images/severe${suffix}.png`;
+    }
+  };
+
+  const GrumpyFace = ({ intensity = 'medium', className = '', transparent = false }: { intensity?: 'low' | 'medium' | 'high'; className?: string; transparent?: boolean }) => (
+    <Image
+      src={getImageSrc(intensity, transparent)}
+      alt={`Grumpy face - ${intensity} intensity`}
+      width={200}
+      height={200}
+      className={`${className} rounded-full`}
+      style={{ objectFit: 'cover' }}
+    />
   );
 
   return (
@@ -62,7 +55,7 @@ export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelec
         className="cursor-pointer transition-transform hover:scale-105 active:scale-95"
         onClick={handleMainFaceClick}
       >
-        <GrumpyFace size={100} />
+        <GrumpyFace intensity="medium" className="w-[100px] h-[100px]" transparent={true} />
       </div>
 
       {/* Selection overlay using portal to render at document root */}
@@ -72,26 +65,26 @@ export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelec
           onClick={handleOverlayClick}
         >
           <div 
-            className="flex flex-col items-center space-y-6 max-w-sm w-full"
+            className="flex flex-col items-center space-y-6 sm:space-y-8 md:space-y-10 max-w-sm sm:max-w-2xl md:max-w-4xl w-full px-4"
             onClick={(e) => e.stopPropagation()} // Prevent closing when clicking on content
           >
             {/* Instructions */}
-            <div className="text-white text-center mb-4">
-              <p className="text-lg font-medium">How strongly do you feel?</p>
-              <p className="text-sm opacity-80">Tap a face to select intensity</p>
+            <div className="text-white text-center mb-2 sm:mb-4">
+              <p className="text-lg sm:text-xl md:text-2xl font-medium">Checking in with Grizzle</p>
+              <p className="text-sm sm:text-base md:text-lg opacity-80 mt-1">Sometimes anxiety pops in for a quick hello — and that’s okay. Grizzle’s here to help you notice how big the storm feels right now.</p>
             </div>
 
             {/* Face selection area */}
-            <div className="flex justify-center items-center w-full max-w-md mx-auto px-4 gap-4 sm:gap-8">
+            <div className="flex justify-center items-center w-full mx-auto px-2 sm:px-4 gap-4 sm:gap-6 md:gap-10 lg:gap-12 xl:gap-16 2xl:gap-20">
               {/* Low intensity - Left */}
               <button 
                 className="flex flex-col items-center transition-all duration-200 cursor-pointer hover:scale-110 active:scale-95"
                 onClick={() => handleFaceSelect('low')}
               >
-                <div className="p-4 sm:p-6 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30">
-                  <GrumpyFace size={40} className="opacity-90" />
+                <div className="rounded-full overflow-hidden">
+                  <GrumpyFace intensity="low" className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] md:w-[180px] md:h-[180px] lg:w-[250px] lg:h-[250px] xl:w-[250px] xl:h-[250px] 2xl:w-[500px] 2xl:h-[500px] opacity-90" />
                 </div>
-                <div className="text-center text-white text-xs sm:text-sm mt-1 sm:mt-2 font-medium">
+                <div className="text-center text-white text-xs sm:text-sm md:text-base lg:text-lg mt-2 sm:mt-3 font-medium">
                   Low
                 </div>
               </button>
@@ -101,10 +94,10 @@ export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelec
                 className="flex flex-col items-center transition-all duration-200 cursor-pointer hover:scale-110 active:scale-95"
                 onClick={() => handleFaceSelect('medium')}
               >
-                <div className="p-4 sm:p-6 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30">
-                  <GrumpyFace size={80} className="opacity-90" />
+                <div className="rounded-full overflow-hidden">
+                  <GrumpyFace intensity="medium" className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] md:w-[180px] md:h-[180px] lg:w-[250px] lg:h-[250px] xl:w-[250px] xl:h-[250px] 2xl:w-[500px] 2xl:h-[500px] opacity-90" />
                 </div>
-                <div className="text-center text-white text-xs sm:text-sm mt-1 sm:mt-2 font-medium">
+                <div className="text-center text-white text-xs sm:text-sm md:text-base lg:text-lg mt-2 sm:mt-3 font-medium">
                   Medium
                 </div>
               </button>
@@ -114,10 +107,10 @@ export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelec
                 className="flex flex-col items-center transition-all duration-200 cursor-pointer hover:scale-110 active:scale-95"
                 onClick={() => handleFaceSelect('high')}
               >
-                <div className="p-4 sm:p-6 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30">
-                  <GrumpyFace size={160} className="opacity-90" />
+                <div className="rounded-full overflow-hidden">
+                  <GrumpyFace intensity="high" className="w-[120px] h-[120px] sm:w-[150px] sm:h-[150px] md:w-[180px] md:h-[180px] lg:w-[250px] lg:h-[250px] xl:w-[250px] xl:h-[250px] 2xl:w-[500px] 2xl:h-[500px] opacity-90" />
                 </div>
-                <div className="text-center text-white text-xs sm:text-sm mt-1 sm:mt-2 font-medium">
+                <div className="text-center text-white text-xs sm:text-sm md:text-base lg:text-lg mt-2 sm:mt-3 font-medium">
                   High
                 </div>
               </button>
@@ -125,7 +118,7 @@ export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelec
 
             {/* Help text */}
             <div className="text-white text-center">
-              <p className="text-xs opacity-60">
+              <p className="text-xs sm:text-sm md:text-base opacity-60">
                 Tap outside to close
               </p>
             </div>
