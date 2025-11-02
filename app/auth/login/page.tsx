@@ -1,5 +1,6 @@
 import { Brain } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { LoginForm } from "@/components/login-form";
 import { login } from "./actions";
 
@@ -22,10 +23,11 @@ export default function LoginPage() {
         </div>
       </div>
       <div className="bg-muted relative hidden lg:block">
-        <img
+        <Image
           src="/images/login.png"
           alt="Login"
-          className="absolute inset-0 h-full w-full object-cover"
+          fill
+          className="object-cover"
         />
       </div>
     </div>
