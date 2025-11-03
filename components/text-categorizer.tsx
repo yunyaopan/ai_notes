@@ -111,9 +111,9 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
     <>
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Text Categorizer</CardTitle>
+        <CardTitle>Dump allyour thoughts</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Enter your thoughts and we&apos;ll categorize them into emotions, insights, gratitudes, worries, and more.
+          We would auto-categorize them into emotions, insights, gratitudes, worries, and more.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
