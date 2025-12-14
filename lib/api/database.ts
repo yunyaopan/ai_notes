@@ -686,3 +686,116 @@ export async function upsertLeafyVegEntry(
     return data;
   }
 }
+
+// Bowel movement tracking operations
+export interface BowelMovement {
+  id: number;
+  user_id: string;
+  date: string; // ISO date string (YYYY-MM-DD)
+  occurred: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function getBowelMovementEntries(userId: string, limit: number = 10): Promise<BowelMovement[]> {
+  const supabase = await createClient();
+  
+  const { data, error } = await supabase
+    .from('bowel_movement')
+    .select('*')
+    .eq('user_id', userId)
+    .order('date', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      // No rows returned
+      return [];
+    }
+    console.error('Database error fetching bowel movement entries:', error);
+    throw new Error('Failed to fetch bowel movement entries');
+  }
+
+  return data || [];
+}
+
+export async function getTodayBowelMovement(userId: string, date?: string): Promise<BowelMovement | null> {
+  const supabase = await createClient();
+  const targetDate = date || new Date().toISOString().split('T')[0];
+  
+  const { data, error } = await supabase
+    .from('bowel_movement')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('date', targetDate)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      // No rows returned
+      return null;
+    }
+    console.error('Database error fetching today\'s bowel movement entry:', error);
+    throw new Error('Failed to fetch today\'s bowel movement entry');
+  }
+
+  return data;
+}
+
+export async function upsertBowelMovementEntry(
+  userId: string,
+  date: string,
+  occurred: boolean
+): Promise<BowelMovement> {
+  const supabase = await createClient();
+  
+  // Check if entry exists
+  const existing = await getTodayBowelMovement(userId, date);
+  
+  if (existing) {
+    // Update existing entry
+    const { data, error } = await supabase
+      .from('bowel_movement')
+      .update({
+        occurred,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', existing.id)
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Database error updating bowel movement entry:', error);
+      throw new Error('Failed to update bowel movement entry');
+    }
+
+    if (!data) {
+      throw new Error('Entry not found or access denied');
+    }
+
+    return data;
+  } else {
+    // Create new entry
+    const { data, error } = await supabase
+      .from('bowel_movement')
+      .insert({
+        user_id: userId,
+        date,
+        occurred
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Database error creating bowel movement entry:', error);
+      throw new Error('Failed to create bowel movement entry');
+    }
+
+    if (!data) {
+      throw new Error('Failed to create entry');
+    }
+
+    return data;
+  }
+}
