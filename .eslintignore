@@ -1,0 +1,13 @@
+.next
+.open-next
+.open-next/.build
+coverage
+coverage/**
+node_modules
+public
+.open-next/**/*.mjs
+/.open-next
+dist
+build
+.env
+.env.*
