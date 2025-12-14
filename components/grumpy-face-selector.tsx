@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 import Image from 'next/image';
 
 interface GrumpyFaceSelectorProps {
@@ -9,8 +10,28 @@ interface GrumpyFaceSelectorProps {
   className?: string;
 }
 
+type CharacterType = 'octupus' | 'yellow' | 'worm' | 'furry';
+
 export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelectorProps) {
   const [showSelector, setShowSelector] = useState(false);
+  const [selectedCharacter, setSelectedCharacter] = useState<CharacterType | null>(null);
+
+  useEffect(() => {
+    fetchSelectedCharacter();
+  }, []);
+
+  const fetchSelectedCharacter = async () => {
+    try {
+      const response = await fetch('/api/settings/anxiety-character');
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedCharacter(data.anxietyCharacter || 'octupus'); // Default to octupus if none selected
+      }
+    } catch (error) {
+      console.error('Error fetching selected character:', error);
+      setSelectedCharacter('octupus'); // Default fallback
+    }
+  };
 
   const handleMainFaceClick = () => {
     setShowSelector(true);
@@ -25,25 +46,20 @@ export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelec
     setShowSelector(false);
   };
 
-  const getImageSrc = (intensity: 'low' | 'medium' | 'high', transparent = false) => {
-    const suffix = transparent ? '_t' : '';
-    switch (intensity) {
-      case 'low':
-        return `/images/mild${suffix}.png`;
-      case 'medium':
-        return `/images/moderate${suffix}.png`;
-      case 'high':
-        return `/images/severe${suffix}.png`;
-    }
+  const getImageSrc = (intensity: 'low' | 'medium' | 'high') => {
+    // Use selected character for all displays
+    const character = selectedCharacter || 'octupus';
+    const suffix = intensity === 'low' ? '_i' : intensity === 'medium' ? '_m' : '_s';
+    return `/images/monsters/${character}${suffix}.png`;
   };
 
   const GrumpyFace = ({ intensity = 'medium', className = '', transparent = false }: { intensity?: 'low' | 'medium' | 'high'; className?: string; transparent?: boolean }) => (
     <Image
-      src={getImageSrc(intensity, transparent)}
+      src={getImageSrc(intensity)}
       alt={`Grumpy face - ${intensity} intensity`}
       width={200}
       height={200}
-      className={`${className} rounded-full`}
+      className={`${className} rounded-full ${transparent ? 'opacity-60' : ''}`}
       style={{ objectFit: 'cover' }}
     />
   );
@@ -57,6 +73,14 @@ export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelec
       >
         <GrumpyFace intensity="medium" className="w-[100px] h-[100px]" transparent={true} />
       </div>
+      
+      {/* Text link to character selection page */}
+      <Link 
+        href="/protected/settings/anxiety-character"
+        className="block text-xs text-muted-foreground hover:text-foreground mt-2 text-center underline"
+      >
+        Choose Character
+      </Link>
 
       {/* Selection overlay using portal to render at document root */}
       {showSelector && typeof window !== 'undefined' && createPortal(
@@ -70,8 +94,8 @@ export function GrumpyFaceSelector({ onSelect, className = '' }: GrumpyFaceSelec
           >
             {/* Instructions */}
             <div className="text-white text-center mb-2 sm:mb-4">
-              <p className="text-lg sm:text-xl md:text-2xl font-medium">Checking in with Grizzle</p>
-              <p className="text-sm sm:text-base md:text-lg opacity-80 mt-1">Sometimes anxiety pops in for a quick hello — and that’s okay. Grizzle’s here to help you notice how big the storm feels right now.</p>
+              <p className="text-lg sm:text-xl md:text-2xl font-medium">Checking in with your anxiety friend</p>
+              <p className="text-sm sm:text-base md:text-lg opacity-80 mt-1">Sometimes anxiety pops in for a quick hello — and that’s okay. Writing it down helps.</p>
             </div>
 
             {/* Face selection area */}

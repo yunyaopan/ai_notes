@@ -24,7 +24,7 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
     setEmotionalIntensity(intensity);
     
     // Add text to the beginning of the text area
-    const intensityText = `I am feeling ${intensity} anxiety and worry about `;
+    const intensityText = `I am feeling ${intensity} levels of  anxiety and worry about `;
     
     // If text is empty, just add the intensity text
     // If text already exists, prepend the intensity text with a space
@@ -111,7 +111,7 @@ export function TextCategorizer({ onSave }: TextCategorizerProps) {
     <>
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Dump allyour thoughts</CardTitle>
+        <CardTitle>Dump all your thoughts</CardTitle>
         <p className="text-sm text-muted-foreground">
           We would auto-categorize them into emotions, insights, gratitudes, worries, and more.
         </p>

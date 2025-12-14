@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -81,6 +82,11 @@ export function UserDropdown({ userEmail, subscriptionStatus }: UserDropdownProp
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem asChild>
+          <Link href="/protected/settings/anxiety-character" className="cursor-pointer">
+            Anxiety Character
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={handleManageSubscription} className="cursor-pointer" disabled={isLoading}>
           {isLoading ? 'Loading...' : 'Manage Subscription'}
         </DropdownMenuItem>

@@ -21,6 +21,9 @@ export function Navigation() {
             <Link href={"/protected"} className="text-xs sm:text-sm hover:underline">
               Write
             </Link>
+            <Link href={"/protected/tracker"} className="text-xs sm:text-sm hover:underline">
+              Tracker
+            </Link>
             <Link href={"/pricing"} className="text-xs sm:text-sm hover:underline">
               Pricing
             </Link>
