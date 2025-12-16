@@ -1,5 +1,5 @@
-import { createClient } from '@/lib/supabase/server';
-import { TextChunk } from './types';
+import { createClient } from "@/lib/supabase/server";
+import { TextChunk } from "./types";
 
 export interface Customer {
   id: string;
@@ -11,22 +11,25 @@ export interface Customer {
   user_id: string;
 }
 
-export async function saveTextChunks(chunks: Omit<TextChunk, 'id' | 'user_id' | 'created_at' | 'updated_at'>[], userId: string): Promise<TextChunk[]> {
+export async function saveTextChunks(
+  chunks: Omit<TextChunk, "id" | "user_id" | "created_at" | "updated_at">[],
+  userId: string
+): Promise<TextChunk[]> {
   const supabase = await createClient();
-  
-  const chunksToInsert = chunks.map(chunk => ({
+
+  const chunksToInsert = chunks.map((chunk) => ({
     ...chunk,
     user_id: userId,
   }));
 
   const { data, error } = await supabase
-    .from('text_chunks')
+    .from("text_chunks")
     .insert(chunksToInsert)
     .select();
 
   if (error) {
-    console.error('Database error:', error);
-    throw new Error('Failed to save chunks to database');
+    console.error("Database error:", error);
+    throw new Error("Failed to save chunks to database");
   }
 
   return data || [];
@@ -34,17 +37,17 @@ export async function saveTextChunks(chunks: Omit<TextChunk, 'id' | 'user_id' | 
 
 export async function getUserTextChunks(userId: string): Promise<TextChunk[]> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
-    .from('text_chunks')
-    .select('*')
-    .eq('user_id', userId)
-    .order('pinned', { ascending: false })
-    .order('created_at', { ascending: false });
+    .from("text_chunks")
+    .select("*")
+    .eq("user_id", userId)
+    .order("pinned", { ascending: false })
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error('Database error:', error);
-    throw new Error('Failed to fetch chunks from database');
+    console.error("Database error:", error);
+    throw new Error("Failed to fetch chunks from database");
   }
 
   return data || [];
@@ -52,142 +55,164 @@ export async function getUserTextChunks(userId: string): Promise<TextChunk[]> {
 
 export async function getUserNoteCount(userId: string): Promise<number> {
   const supabase = await createClient();
-  
+
   const { count, error } = await supabase
-    .from('text_chunks')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId);
+    .from("text_chunks")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId);
 
   if (error) {
-    console.error('Database error:', error);
-    throw new Error('Failed to fetch note count');
+    console.error("Database error:", error);
+    throw new Error("Failed to fetch note count");
   }
 
   return count || 0;
 }
 
-export async function updateChunkPinStatus(chunkId: string, userId: string, pinned: boolean): Promise<TextChunk> {
+export async function updateChunkPinStatus(
+  chunkId: string,
+  userId: string,
+  pinned: boolean
+): Promise<TextChunk> {
   const supabase = await createClient();
-  
+
   // First, if we're pinning this chunk, unpin all other chunks for this user
   if (pinned) {
     const { error: unpinError } = await supabase
-      .from('text_chunks')
+      .from("text_chunks")
       .update({ pinned: false })
-      .eq('user_id', userId)
-      .eq('pinned', true);
-    
+      .eq("user_id", userId)
+      .eq("pinned", true);
+
     if (unpinError) {
-      console.error('Database error unpinning other chunks:', unpinError);
-      throw new Error('Failed to unpin other chunks');
+      console.error("Database error unpinning other chunks:", unpinError);
+      throw new Error("Failed to unpin other chunks");
     }
   }
-  
+
   // Now update the target chunk
   const { data, error } = await supabase
-    .from('text_chunks')
+    .from("text_chunks")
     .update({ pinned, updated_at: new Date().toISOString() })
-    .eq('id', chunkId)
-    .eq('user_id', userId)
+    .eq("id", chunkId)
+    .eq("user_id", userId)
     .select()
     .single();
 
   if (error) {
-    console.error('Database error updating pin status:', error);
-    throw new Error('Failed to update chunk pin status');
+    console.error("Database error updating pin status:", error);
+    throw new Error("Failed to update chunk pin status");
   }
 
   if (!data) {
-    throw new Error('Chunk not found or access denied');
+    throw new Error("Chunk not found or access denied");
   }
 
   return data;
 }
 
-export async function updateTextChunk(chunkId: string, userId: string, content: string, category: string): Promise<TextChunk> {
+export async function updateTextChunk(
+  chunkId: string,
+  userId: string,
+  content: string,
+  category: string
+): Promise<TextChunk> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
-    .from('text_chunks')
-    .update({ 
-      content, 
-      category, 
-      updated_at: new Date().toISOString() 
+    .from("text_chunks")
+    .update({
+      content,
+      category,
+      updated_at: new Date().toISOString(),
     })
-    .eq('id', chunkId)
-    .eq('user_id', userId)
+    .eq("id", chunkId)
+    .eq("user_id", userId)
     .select()
     .single();
 
   if (error) {
-    console.error('Database error updating chunk:', error);
-    throw new Error('Failed to update chunk');
+    console.error("Database error updating chunk:", error);
+    throw new Error("Failed to update chunk");
   }
 
   if (!data) {
-    throw new Error('Chunk not found or access denied');
+    throw new Error("Chunk not found or access denied");
   }
 
   return data;
 }
 
-export async function updateChunkStarStatus(chunkId: string, userId: string, starred: boolean): Promise<TextChunk> {
+export async function updateChunkStarStatus(
+  chunkId: string,
+  userId: string,
+  starred: boolean
+): Promise<TextChunk> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
-    .from('text_chunks')
+    .from("text_chunks")
     .update({ starred, updated_at: new Date().toISOString() })
-    .eq('id', chunkId)
-    .eq('user_id', userId)
+    .eq("id", chunkId)
+    .eq("user_id", userId)
     .select()
     .single();
 
   if (error) {
-    console.error('Database error updating star status:', error);
-    throw new Error('Failed to update chunk star status');
+    console.error("Database error updating star status:", error);
+    throw new Error("Failed to update chunk star status");
   }
 
   if (!data) {
-    throw new Error('Chunk not found or access denied');
+    throw new Error("Chunk not found or access denied");
   }
 
   return data;
 }
 
-export async function deleteTextChunk(chunkId: string, userId: string): Promise<void> {
+export async function deleteTextChunk(
+  chunkId: string,
+  userId: string
+): Promise<void> {
   const supabase = await createClient();
-  
+
   const { error } = await supabase
-    .from('text_chunks')
+    .from("text_chunks")
     .delete()
-    .eq('id', chunkId)
-    .eq('user_id', userId);
+    .eq("id", chunkId)
+    .eq("user_id", userId);
 
   if (error) {
-    console.error('Database error deleting chunk:', error);
-    throw new Error('Failed to delete chunk');
+    console.error("Database error deleting chunk:", error);
+    throw new Error("Failed to delete chunk");
   }
 }
 
 // Customer operations
-export async function createCustomer(customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at'>): Promise<Customer> {
+export async function createCustomer(
+  customerData: Omit<Customer, "id" | "created_at" | "updated_at">
+): Promise<Customer> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
-    .from('customers')
+    .from("customers")
     .insert(customerData)
     .select()
     .single();
 
   if (error) {
-    console.error('Database error creating customer:', error);
+    console.error("Database error creating customer:", error);
     // Check if it's a unique constraint violation (PostgreSQL error code 23505)
-    if (error.code === '23505') {
-      console.log(`Unique constraint violation: Customer with user_id ${customerData.user_id} or stripe_customer_id ${customerData.stripe_customer_id} already exists`);
+    if (error.code === "23505") {
+      console.log(
+        `Unique constraint violation: Customer with user_id ${customerData.user_id} or stripe_customer_id ${customerData.stripe_customer_id} already exists`
+      );
       // Try to fetch and return the existing customer
       const existing = await getCustomerByUserId(customerData.user_id);
       if (existing) {
-        console.log(`Returning existing customer record for user_id ${customerData.user_id}`);
+        console.log(
+          `Returning existing customer record for user_id ${customerData.user_id}`
+        );
         return existing;
       }
     }
@@ -198,95 +223,108 @@ export async function createCustomer(customerData: Omit<Customer, 'id' | 'create
   return data;
 }
 
-export async function updateCustomerSubscriptionStatus(stripeCustomerId: string, subscriptionStatus: string): Promise<Customer> {
+export async function updateCustomerSubscriptionStatus(
+  stripeCustomerId: string,
+  subscriptionStatus: string
+): Promise<Customer> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
-    .from('customers')
-    .update({ 
+    .from("customers")
+    .update({
       subscription_status: subscriptionStatus,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
-    .eq('stripe_customer_id', stripeCustomerId)
+    .eq("stripe_customer_id", stripeCustomerId)
     .select()
     .single();
 
   if (error) {
-    console.error('Database error updating customer subscription status:', error);
-    throw new Error('Failed to update customer subscription status');
+    console.error(
+      "Database error updating customer subscription status:",
+      error
+    );
+    throw new Error("Failed to update customer subscription status");
   }
 
   if (!data) {
-    throw new Error('Customer not found');
+    throw new Error("Customer not found");
   }
 
   return data;
 }
 
-export async function getCustomerByStripeId(stripeCustomerId: string): Promise<Customer | null> {
+export async function getCustomerByStripeId(
+  stripeCustomerId: string
+): Promise<Customer | null> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
-    .from('customers')
-    .select('*')
-    .eq('stripe_customer_id', stripeCustomerId)
+    .from("customers")
+    .select("*")
+    .eq("stripe_customer_id", stripeCustomerId)
     .single();
 
   if (error) {
-    if (error.code === 'PGRST116') {
+    if (error.code === "PGRST116") {
       // No rows returned
       return null;
     }
-    console.error('Database error fetching customer:', error);
-    throw new Error('Failed to fetch customer');
+    console.error("Database error fetching customer:", error);
+    throw new Error("Failed to fetch customer");
   }
 
   return data;
 }
 
-export async function getCustomerByUserId(userId: string): Promise<Customer | null> {
+export async function getCustomerByUserId(
+  userId: string
+): Promise<Customer | null> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
-    .from('customers')
-    .select('*')
-    .eq('user_id', userId)
+    .from("customers")
+    .select("*")
+    .eq("user_id", userId)
     .single();
 
   if (error) {
-    if (error.code === 'PGRST116') {
+    if (error.code === "PGRST116") {
       // No rows returned
       return null;
     }
-    console.error('Database error fetching customer by user ID:', error);
-    throw new Error('Failed to fetch customer by user ID');
+    console.error("Database error fetching customer by user ID:", error);
+    throw new Error("Failed to fetch customer by user ID");
   }
 
   return data;
 }
 
-export async function updateUserSubscriptionMetadata(userId: string, subscriptionStatus: string): Promise<void> {
+export async function updateUserSubscriptionMetadata(
+  userId: string,
+  subscriptionStatus: string
+): Promise<void> {
   // Create admin client for updating app_metadata
-  const { createClient } = await import('@supabase/supabase-js');
-  
+  const { createClient } = await import("@supabase/supabase-js");
+
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
       auth: {
         autoRefreshToken: false,
-        persistSession: false
-      }
+        persistSession: false,
+      },
     }
   );
 
   const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-    app_metadata: { subscription_status: subscriptionStatus }
+    app_metadata: { subscription_status: subscriptionStatus },
   });
 
   if (error) {
-    console.error('Error updating user app_metadata:', error);
-    throw new Error('Failed to update user subscription metadata');
+    console.error("Error updating user app_metadata:", error);
+    throw new Error("Failed to update user subscription metadata");
   }
 }
 
@@ -294,78 +332,83 @@ export async function updateUserSubscriptionMetadata(userId: string, subscriptio
 export interface UserSettings {
   id: string;
   user_id: string;
-  anxiety_character: 'octupus' | 'yellow' | 'worm' | 'furry' | null;
+  anxiety_character: "octupus" | "yellow" | "worm" | "furry" | null;
   created_at: string;
   updated_at: string;
 }
 
-export async function getUserSettings(userId: string): Promise<UserSettings | null> {
+export async function getUserSettings(
+  userId: string
+): Promise<UserSettings | null> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
-    .from('user_settings')
-    .select('*')
-    .eq('user_id', userId)
+    .from("user_settings")
+    .select("*")
+    .eq("user_id", userId)
     .single();
 
   if (error) {
-    if (error.code === 'PGRST116') {
+    if (error.code === "PGRST116") {
       // No rows returned
       return null;
     }
-    console.error('Database error fetching user settings:', error);
-    throw new Error('Failed to fetch user settings');
+    console.error("Database error fetching user settings:", error);
+    throw new Error("Failed to fetch user settings");
   }
 
   return data;
 }
 
-export async function updateUserSettings(userId: string, anxietyCharacter: 'octupus' | 'yellow' | 'worm' | 'furry'): Promise<UserSettings> {
+export async function updateUserSettings(
+  userId: string,
+  anxietyCharacter: "octupus" | "yellow" | "worm" | "furry"
+): Promise<UserSettings> {
   const supabase = await createClient();
-  
+
   // First, check if settings exist
   const existing = await getUserSettings(userId);
-  
+
   if (existing) {
     // Update existing settings
     const { data, error } = await supabase
-      .from('user_settings')
-      .update({ 
+      .from("user_settings")
+      .update({
         anxiety_character: anxietyCharacter,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
-      .eq('user_id', userId)
+      .eq("user_id", userId)
       .select()
       .single();
 
     if (error) {
-      console.error('Database error updating user settings:', error);
-      throw new Error('Failed to update user settings');
+      console.error("Database error updating user settings:", error);
+      throw new Error("Failed to update user settings");
     }
 
     if (!data) {
-      throw new Error('Settings not found or access denied');
+      throw new Error("Settings not found or access denied");
     }
 
     return data;
   } else {
     // Create new settings
     const { data, error } = await supabase
-      .from('user_settings')
+      .from("user_settings")
       .insert({
         user_id: userId,
-        anxiety_character: anxietyCharacter
+        anxiety_character: anxietyCharacter,
       })
       .select()
       .single();
 
     if (error) {
-      console.error('Database error creating user settings:', error);
-      throw new Error('Failed to create user settings');
+      console.error("Database error creating user settings:", error);
+      throw new Error("Failed to create user settings");
     }
 
     if (!data) {
-      throw new Error('Failed to create settings');
+      throw new Error("Failed to create settings");
     }
 
     return data;
@@ -378,7 +421,7 @@ export interface Meal {
   user_id: string;
   week_start: string; // ISO date string for Monday of the week
   meal_index: number; // 1-14
-  meat_type: 'red_meat' | 'salmon' | 'chicken' | 'other_seafood' | 'small_fish';
+  meat_type: "red_meat" | "salmon" | "chicken" | "other_seafood" | "small_fish";
   eaten: boolean;
   created_at: string;
   updated_at: string;
@@ -390,36 +433,42 @@ function getWeekStart(date: Date = new Date()): string {
   const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
   const monday = new Date(d.setDate(diff));
   monday.setHours(0, 0, 0, 0);
-  return monday.toISOString().split('T')[0];
+  return monday.toISOString().split("T")[0];
 }
 
-export async function getWeekMeals(userId: string, weekStart?: string): Promise<Meal[]> {
+export async function getWeekMeals(
+  userId: string,
+  weekStart?: string
+): Promise<Meal[]> {
   const supabase = await createClient();
   const week = weekStart || getWeekStart();
-  
+
   const { data, error } = await supabase
-    .from('meals')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('week_start', week)
-    .order('meal_index', { ascending: true });
+    .from("meals")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("week_start", week)
+    .order("meal_index", { ascending: true });
 
   if (error) {
-    if (error.code === 'PGRST116') {
+    if (error.code === "PGRST116") {
       // No rows returned
       return [];
     }
-    console.error('Database error fetching meals:', error);
-    throw new Error('Failed to fetch meals');
+    console.error("Database error fetching meals:", error);
+    throw new Error("Failed to fetch meals");
   }
 
   return data || [];
 }
 
-export async function initializeWeekMeals(userId: string, weekStart?: string): Promise<Meal[]> {
+export async function initializeWeekMeals(
+  userId: string,
+  weekStart?: string
+): Promise<Meal[]> {
   const supabase = await createClient();
   const week = weekStart || getWeekStart();
-  
+
   // Check if meals already exist for this week
   const existing = await getWeekMeals(userId, week);
   if (existing.length > 0) {
@@ -427,19 +476,27 @@ export async function initializeWeekMeals(userId: string, weekStart?: string): P
   }
 
   // Define the meal quotas
-  const mealQuotas: Array<{ meat_type: 'red_meat' | 'salmon' | 'chicken' | 'other_seafood' | 'small_fish'; count: number }> = [
-    { meat_type: 'red_meat', count: 4 },
-    { meat_type: 'salmon', count: 2 },
-    { meat_type: 'chicken', count: 2 },
-    { meat_type: 'other_seafood', count: 1 },
-    { meat_type: 'small_fish', count: 5 },
+  const mealQuotas: Array<{
+    meat_type:
+      | "red_meat"
+      | "salmon"
+      | "chicken"
+      | "other_seafood"
+      | "small_fish";
+    count: number;
+  }> = [
+    { meat_type: "red_meat", count: 4 },
+    { meat_type: "salmon", count: 2 },
+    { meat_type: "chicken", count: 2 },
+    { meat_type: "other_seafood", count: 1 },
+    { meat_type: "small_fish", count: 5 },
   ];
 
   // Create meals array
-  const mealsToInsert: Omit<Meal, 'id' | 'created_at' | 'updated_at'>[] = [];
+  const mealsToInsert: Omit<Meal, "id" | "created_at" | "updated_at">[] = [];
   let mealIndex = 1;
-  
-  mealQuotas.forEach(quota => {
+
+  mealQuotas.forEach((quota) => {
     for (let i = 0; i < quota.count; i++) {
       mealsToInsert.push({
         user_id: userId,
@@ -452,13 +509,13 @@ export async function initializeWeekMeals(userId: string, weekStart?: string): P
   });
 
   const { data, error } = await supabase
-    .from('meals')
+    .from("meals")
     .insert(mealsToInsert)
     .select();
 
   if (error) {
-    console.error('Database error initializing meals:', error);
-    throw new Error('Failed to initialize meals');
+    console.error("Database error initializing meals:", error);
+    throw new Error("Failed to initialize meals");
   }
 
   return data || [];
@@ -472,26 +529,26 @@ export async function updateMealEatenStatus(
 ): Promise<Meal> {
   const supabase = await createClient();
   const week = weekStart || getWeekStart();
-  
+
   const { data, error } = await supabase
-    .from('meals')
-    .update({ 
+    .from("meals")
+    .update({
       eaten,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
-    .eq('id', mealId)
-    .eq('user_id', userId)
-    .eq('week_start', week)
+    .eq("id", mealId)
+    .eq("user_id", userId)
+    .eq("week_start", week)
     .select()
     .single();
 
   if (error) {
-    console.error('Database error updating meal:', error);
-    throw new Error('Failed to update meal');
+    console.error("Database error updating meal:", error);
+    throw new Error("Failed to update meal");
   }
 
   if (!data) {
-    throw new Error('Meal not found or access denied');
+    throw new Error("Meal not found or access denied");
   }
 
   return data;
@@ -521,109 +578,117 @@ function getWeekStartDate(date: Date = new Date()): Date {
 
 // Helper function to parse date string as local date (for Singapore timezone)
 function parseLocalDate(dateStr: string): Date {
-  const [year, month, day] = dateStr.split('-').map(Number);
+  const [year, month, day] = dateStr.split("-").map(Number);
   return new Date(year, month - 1, day); // month is 0-indexed, creates local date
 }
 
 // Helper function to format date as YYYY-MM-DD in local timezone
 function formatLocalDate(date: Date): string {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
-
-export async function getLeafyVegEntries(userId: string, limit: number = 10): Promise<LeafyVeg[]> {
+export async function getLeafyVegEntries(
+  userId: string,
+  limit: number = 10
+): Promise<LeafyVeg[]> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
-    .from('leafy_veg')
-    .select('*')
-    .eq('user_id', userId)
-    .order('date', { ascending: false })
+    .from("leafy_veg")
+    .select("*")
+    .eq("user_id", userId)
+    .order("date", { ascending: false })
     .limit(limit);
 
   if (error) {
-    if (error.code === 'PGRST116') {
+    if (error.code === "PGRST116") {
       // No rows returned
       return [];
     }
-    console.error('Database error fetching leafy veg entries:', error);
-    throw new Error('Failed to fetch leafy veg entries');
+    console.error("Database error fetching leafy veg entries:", error);
+    throw new Error("Failed to fetch leafy veg entries");
   }
 
   return data || [];
 }
 
-export async function getWeekLeafyVegTotal(userId: string, weekStart?: string): Promise<number> {
+export async function getWeekLeafyVegTotal(
+  userId: string,
+  weekStart?: string
+): Promise<number> {
   const supabase = await createClient();
-  
+
   // Parse weekStart as local date if provided, otherwise use current date
   const startDate = weekStart ? parseLocalDate(weekStart) : getWeekStartDate();
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + 6); // Sunday (6 days after Monday)
-  
+
   // Format dates as YYYY-MM-DD in local timezone
   const startDateStr = formatLocalDate(startDate);
   const endDateStr = formatLocalDate(endDate);
-  
+
   // Ensure we're using the correct timezone and date format
-  console.log('[getWeekLeafyVegTotal] Date calculation:', {
+  console.log("[getWeekLeafyVegTotal] Date calculation:", {
     weekStart,
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     startDateStr,
-    endDateStr
+    endDateStr,
   });
-  
-  console.log('[getWeekLeafyVegTotal] Query params:', {
+
+  console.log("[getWeekLeafyVegTotal] Query params:", {
     userId,
     weekStart,
     startDateStr,
-    endDateStr
+    endDateStr,
   });
-  
+
   const { data, error } = await supabase
-    .from('leafy_veg')
-    .select('grams')
-    .eq('user_id', userId)
-    .gte('date', startDateStr)
-    .lte('date', endDateStr);
+    .from("leafy_veg")
+    .select("grams")
+    .eq("user_id", userId)
+    .gte("date", startDateStr)
+    .lte("date", endDateStr);
 
   if (error) {
-    if (error.code === 'PGRST116') {
-      console.log('[getWeekLeafyVegTotal] No rows found, returning 0');
+    if (error.code === "PGRST116") {
+      console.log("[getWeekLeafyVegTotal] No rows found, returning 0");
       return 0;
     }
-    console.error('[getWeekLeafyVegTotal] Database error:', error);
-    throw new Error('Failed to fetch week total');
+    console.error("[getWeekLeafyVegTotal] Database error:", error);
+    throw new Error("Failed to fetch week total");
   }
 
-  console.log('[getWeekLeafyVegTotal] Raw data from DB:', data);
+  console.log("[getWeekLeafyVegTotal] Raw data from DB:", data);
   const total = data?.reduce((sum, entry) => sum + entry.grams, 0) || 0;
-  console.log('[getWeekLeafyVegTotal] Calculated total:', total);
+  console.log("[getWeekLeafyVegTotal] Calculated total:", total);
   return total;
 }
 
-export async function getTodayLeafyVeg(userId: string, date?: string): Promise<LeafyVeg | null> {
+export async function getTodayLeafyVeg(
+  userId: string,
+  date?: string
+): Promise<LeafyVeg | null> {
   const supabase = await createClient();
-  const targetDate = date || new Date().toISOString().split('T')[0];
-  
+  const targetDate = date || new Date().toISOString().split("T")[0];
+
   const { data, error } = await supabase
-    .from('leafy_veg')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('date', targetDate)
+    .from("leafy_veg")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("date", targetDate)
     .single();
 
   if (error) {
-    if (error.code === 'PGRST116') {
+    if (error.code === "PGRST116") {
       // No rows returned
       return null;
     }
-    console.error('Database error fetching today\'s entry:', error);
-    throw new Error('Failed to fetch today\'s entry');
+    console.error("Database error fetching today's entry:", error);
+    throw new Error("Failed to fetch today's entry");
   }
 
   return data;
@@ -635,52 +700,52 @@ export async function upsertLeafyVegEntry(
   grams: number
 ): Promise<LeafyVeg> {
   const supabase = await createClient();
-  
+
   // Check if entry exists
   const existing = await getTodayLeafyVeg(userId, date);
-  
+
   if (existing) {
     // Update existing entry
     const { data, error } = await supabase
-      .from('leafy_veg')
+      .from("leafy_veg")
       .update({
         grams,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
-      .eq('id', existing.id)
-      .eq('user_id', userId)
+      .eq("id", existing.id)
+      .eq("user_id", userId)
       .select()
       .single();
 
     if (error) {
-      console.error('Database error updating leafy veg entry:', error);
-      throw new Error('Failed to update leafy veg entry');
+      console.error("Database error updating leafy veg entry:", error);
+      throw new Error("Failed to update leafy veg entry");
     }
 
     if (!data) {
-      throw new Error('Entry not found or access denied');
+      throw new Error("Entry not found or access denied");
     }
 
     return data;
   } else {
     // Create new entry
     const { data, error } = await supabase
-      .from('leafy_veg')
+      .from("leafy_veg")
       .insert({
         user_id: userId,
         date,
-        grams
+        grams,
       })
       .select()
       .single();
 
     if (error) {
-      console.error('Database error creating leafy veg entry:', error);
-      throw new Error('Failed to create leafy veg entry');
+      console.error("Database error creating leafy veg entry:", error);
+      throw new Error("Failed to create leafy veg entry");
     }
 
     if (!data) {
-      throw new Error('Failed to create entry');
+      throw new Error("Failed to create entry");
     }
 
     return data;
@@ -697,46 +762,55 @@ export interface BowelMovement {
   updated_at: string;
 }
 
-export async function getBowelMovementEntries(userId: string, limit: number = 10): Promise<BowelMovement[]> {
+export async function getBowelMovementEntries(
+  userId: string,
+  limit: number = 10
+): Promise<BowelMovement[]> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
-    .from('bowel_movement')
-    .select('*')
-    .eq('user_id', userId)
-    .order('date', { ascending: false })
+    .from("bowel_movement")
+    .select("*")
+    .eq("user_id", userId)
+    .order("date", { ascending: false })
     .limit(limit);
 
   if (error) {
-    if (error.code === 'PGRST116') {
+    if (error.code === "PGRST116") {
       // No rows returned
       return [];
     }
-    console.error('Database error fetching bowel movement entries:', error);
-    throw new Error('Failed to fetch bowel movement entries');
+    console.error("Database error fetching bowel movement entries:", error);
+    throw new Error("Failed to fetch bowel movement entries");
   }
 
   return data || [];
 }
 
-export async function getTodayBowelMovement(userId: string, date?: string): Promise<BowelMovement | null> {
+export async function getTodayBowelMovement(
+  userId: string,
+  date?: string
+): Promise<BowelMovement | null> {
   const supabase = await createClient();
-  const targetDate = date || new Date().toISOString().split('T')[0];
-  
+  const targetDate = date || new Date().toISOString().split("T")[0];
+
   const { data, error } = await supabase
-    .from('bowel_movement')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('date', targetDate)
+    .from("bowel_movement")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("date", targetDate)
     .single();
 
   if (error) {
-    if (error.code === 'PGRST116') {
+    if (error.code === "PGRST116") {
       // No rows returned
       return null;
     }
-    console.error('Database error fetching today\'s bowel movement entry:', error);
-    throw new Error('Failed to fetch today\'s bowel movement entry');
+    console.error(
+      "Database error fetching today's bowel movement entry:",
+      error
+    );
+    throw new Error("Failed to fetch today's bowel movement entry");
   }
 
   return data;
@@ -748,54 +822,170 @@ export async function upsertBowelMovementEntry(
   occurred: boolean
 ): Promise<BowelMovement> {
   const supabase = await createClient();
-  
+
   // Check if entry exists
   const existing = await getTodayBowelMovement(userId, date);
-  
+
   if (existing) {
     // Update existing entry
     const { data, error } = await supabase
-      .from('bowel_movement')
+      .from("bowel_movement")
       .update({
         occurred,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
-      .eq('id', existing.id)
-      .eq('user_id', userId)
+      .eq("id", existing.id)
+      .eq("user_id", userId)
       .select()
       .single();
 
     if (error) {
-      console.error('Database error updating bowel movement entry:', error);
-      throw new Error('Failed to update bowel movement entry');
+      console.error("Database error updating bowel movement entry:", error);
+      throw new Error("Failed to update bowel movement entry");
     }
 
     if (!data) {
-      throw new Error('Entry not found or access denied');
+      throw new Error("Entry not found or access denied");
     }
 
     return data;
   } else {
     // Create new entry
     const { data, error } = await supabase
-      .from('bowel_movement')
+      .from("bowel_movement")
       .insert({
         user_id: userId,
         date,
-        occurred
+        occurred,
       })
       .select()
       .single();
 
     if (error) {
-      console.error('Database error creating bowel movement entry:', error);
-      throw new Error('Failed to create bowel movement entry');
+      console.error("Database error creating bowel movement entry:", error);
+      throw new Error("Failed to create bowel movement entry");
     }
 
     if (!data) {
-      throw new Error('Failed to create entry');
+      throw new Error("Failed to create entry");
     }
 
     return data;
+  }
+}
+
+// Meat entry tracking operations
+export type MeatType =
+  | "red_meat"
+  | "salmon"
+  | "chicken"
+  | "other_seafood"
+  | "small_fish";
+
+export interface MeatEntry {
+  id: number;
+  user_id: string;
+  date: string; // ISO date string (YYYY-MM-DD)
+  meat_type: MeatType;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function getMeatEntries(
+  userId: string,
+  limit: number = 10
+): Promise<MeatEntry[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("meat_entries")
+    .select("*")
+    .eq("user_id", userId)
+    .order("date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      // No rows returned
+      return [];
+    }
+    console.error("Database error fetching meat entries:", error);
+    throw new Error("Failed to fetch meat entries");
+  }
+
+  return data || [];
+}
+
+export async function getMeatEntriesByDate(
+  userId: string,
+  date: string
+): Promise<MeatEntry[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("meat_entries")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("date", date)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      // No rows returned
+      return [];
+    }
+    console.error("Database error fetching meat entries by date:", error);
+    throw new Error("Failed to fetch meat entries by date");
+  }
+
+  return data || [];
+}
+
+export async function addMeatEntry(
+  userId: string,
+  date: string,
+  meatType: MeatType
+): Promise<MeatEntry> {
+  const supabase = await createClient();
+
+  // Create new entry - allow duplicates (same meat type on same day is allowed)
+  const { data, error } = await supabase
+    .from("meat_entries")
+    .insert({
+      user_id: userId,
+      date,
+      meat_type: meatType,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Database error creating meat entry:", error);
+    throw new Error("Failed to create meat entry");
+  }
+
+  if (!data) {
+    throw new Error("Failed to create entry");
+  }
+
+  return data;
+}
+
+export async function deleteMeatEntry(
+  userId: string,
+  entryId: number
+): Promise<void> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("meat_entries")
+    .delete()
+    .eq("id", entryId)
+    .eq("user_id", userId);
+
+  if (error) {
+    console.error("Database error deleting meat entry:", error);
+    throw new Error("Failed to delete meat entry");
   }
 }
