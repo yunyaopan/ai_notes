@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { TextChunk } from '@/lib/api/types';
-import { CATEGORIES } from '@/lib/config/categories';
+import { CATEGORIES, getCategoryBadgeVariant } from '@/lib/config/categories';
 import { MoreVertical, Pin, PinOff, ChevronDown, Clock, Tag, Edit, Trash2, Star, StarOff } from 'lucide-react';
 import { PriorityOverlay } from '@/components/priority-overlay';
 import { isCategoryRankable, getRankableCategories } from '@/lib/config/categories';
@@ -455,8 +455,8 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
                                 </select>
                               ) : (
                                 <Badge 
-                                  className={`${categoryConfig?.color || 'bg-gray-100 text-gray-800'} cursor-pointer hover:opacity-80`} 
-                                  variant="outline"
+                                  variant={getCategoryBadgeVariant(chunk.category)}
+                                  className="cursor-pointer hover:opacity-80"
                                   onClick={() => setEditingCategory(chunk.id!)}
                                 >
                                   {categoryConfig?.label || chunk.category}
@@ -559,7 +559,8 @@ export function SavedChunks({ refreshTrigger }: SavedChunksProps) {
               <div key={categoryConfig.key} className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Badge 
-                    className={`${categoryConfig.color} ${
+                    variant={getCategoryBadgeVariant(categoryConfig.key)}
+                    className={`${
                       isCategoryRankable(categoryConfig.key) ? 'cursor-pointer hover:opacity-80' : ''
                     }`}
                     onClick={isCategoryRankable(categoryConfig.key) ? () => handleCategoryClick(categoryConfig.key) : undefined}

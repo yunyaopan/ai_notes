@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TextChunk } from '@/lib/api/types';
-import { CATEGORIES } from '@/lib/config/categories';
+import { CATEGORIES, getCategoryBadgeVariant } from '@/lib/config/categories';
 import { Pin } from 'lucide-react';
 
 interface PinnedChunkProps {
@@ -61,7 +61,7 @@ export function PinnedChunk({ refreshTrigger }: PinnedChunkProps) {
           <Pin className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <Badge className={categoryConfig?.color || 'bg-gray-100 text-gray-800'}>
+              <Badge variant={getCategoryBadgeVariant(pinnedChunk.category)}>
                 {categoryConfig?.label || pinnedChunk.category}
               </Badge>
               <span className="text-xs text-muted-foreground">Pinned</span>
