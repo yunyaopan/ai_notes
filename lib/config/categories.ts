@@ -76,6 +76,14 @@ export const CATEGORIES: CategoryConfig[] = [
     rankable: true,
   },
   {
+    key: "health_body_feel",
+    label: "Health & Body Feel",
+    description:
+      "Notes about physical health, body sensations, or how the body feels",
+    color:
+      "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200",
+  },
+  {
     key: "other",
     label: "Other",
     description: "Content that doesn't fit the above categories",
@@ -108,6 +116,7 @@ const categoryVariantMap: Record<
   | "category-orange"
   | "category-pink"
   | "category-indigo"
+  | "category-purple"
   | "category-gray"
 > = {
   other_emotions: "category-amber",
@@ -119,6 +128,7 @@ const categoryVariantMap: Record<
   experiments: "category-orange",
   wish: "category-pink",
   questions: "category-indigo",
+  health_body_feel: "category-purple",
   other: "category-gray",
 };
 

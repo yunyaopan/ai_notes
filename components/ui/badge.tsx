@@ -30,6 +30,8 @@ const badgeVariants = cva(
           "border-transparent bg-pink-100 text-pink-800 dark:bg-pink-600 dark:text-white",
         "category-indigo":
           "border-transparent bg-indigo-100 text-indigo-800 dark:bg-indigo-600 dark:text-white",
+        "category-purple":
+          "border-transparent bg-purple-100 text-purple-800 dark:bg-purple-600 dark:text-white",
         "category-gray":
           "border-transparent bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-white",
       },
@@ -37,7 +39,7 @@ const badgeVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  },
+  }
 );
 
 export interface BadgeProps
