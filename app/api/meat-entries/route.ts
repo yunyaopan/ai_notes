@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   getMeatEntries,
   getMeatEntriesByDate,
+  getMeatEntriesByWeek,
   addMeatEntry,
   deleteMeatEntry,
   MeatType,
@@ -45,6 +46,18 @@ export async function GET(request: NextRequest) {
         );
       }
       const entries = await getMeatEntriesByDate(user.id, date);
+      return NextResponse.json({ entries });
+    }
+
+    if (action === "by-week") {
+      const weekStart = searchParams.get("week_start");
+      if (!weekStart) {
+        return NextResponse.json(
+          { error: "week_start query parameter is required" },
+          { status: 400 }
+        );
+      }
+      const entries = await getMeatEntriesByWeek(user.id, weekStart);
       return NextResponse.json({ entries });
     }
 

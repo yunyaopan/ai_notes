@@ -977,6 +977,39 @@ export async function addMeatEntry(
   return data;
 }
 
+export async function getMeatEntriesByWeek(
+  userId: string,
+  weekStart: string
+): Promise<MeatEntry[]> {
+  const supabase = await createClient();
+
+  // Calculate week end (Sunday)
+  const weekStartDate = new Date(weekStart + "T00:00:00");
+  const weekEndDate = new Date(weekStartDate);
+  weekEndDate.setDate(weekEndDate.getDate() + 6); // Add 6 days to get Sunday
+  const weekEnd = weekEndDate.toISOString().split("T")[0];
+
+  const { data, error } = await supabase
+    .from("meat_entries")
+    .select("*")
+    .eq("user_id", userId)
+    .gte("date", weekStart)
+    .lte("date", weekEnd)
+    .order("date", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      // No rows returned
+      return [];
+    }
+    console.error("Database error fetching meat entries by week:", error);
+    throw new Error("Failed to fetch meat entries by week");
+  }
+
+  return data || [];
+}
+
 export async function deleteMeatEntry(
   userId: string,
   entryId: number

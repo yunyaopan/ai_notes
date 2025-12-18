@@ -16,9 +16,8 @@ type MeatType =
   | "small_fish";
 
 interface MealBox {
-  id: number;
   type: MeatType;
-  eaten: boolean;
+  hasEntryToday: boolean;
 }
 
 interface MeatEntry {
@@ -48,11 +47,22 @@ const MEAL_QUOTAS: {
   { type: "small_fish", count: 5, label: "Small Fish", color: "bg-cyan-500" },
 ];
 
+// Helper function to get week start (Monday)
+function getWeekStart(date: Date = new Date()): string {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
+  const monday = new Date(d.setDate(diff));
+  monday.setHours(0, 0, 0, 0);
+  return monday.toISOString().split("T")[0];
+}
+
 export function MeatTracker() {
   const [meals, setMeals] = useState<MealBox[]>([]);
-  const [entries, setEntries] = useState<MeatEntry[]>([]);
+  const [weekEntries, setWeekEntries] = useState<MeatEntry[]>([]);
+  const [historyEntries, setHistoryEntries] = useState<MeatEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState<number | null>(null);
+  const [updating, setUpdating] = useState<MeatType | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedPastDate, setSelectedPastDate] = useState<string>("");
@@ -61,138 +71,119 @@ export function MeatTracker() {
   );
   const [addingPastEntry, setAddingPastEntry] = useState(false);
   const selectedDate = new Date().toISOString().split("T")[0];
+  const weekStart = getWeekStart();
 
-  // Initialize meals with quota info
+  // Initialize meals with quota info and load week entries
   useEffect(() => {
-    const initializeMeals = async () => {
+    const loadData = async () => {
       try {
-        // Fetch current week's meal data
-        const response = await fetch("/api/meals");
-        if (response.ok) {
-          const data = await response.json();
-          if (data.meals && data.meals.length > 0) {
-            setMeals(data.meals);
-          } else {
-            // Initialize with quota info
-            const initialMeals: MealBox[] = [];
-            let id = 1;
-            MEAL_QUOTAS.forEach((quota) => {
-              for (let i = 0; i < quota.count; i++) {
-                initialMeals.push({
-                  id: id++,
-                  type: quota.type,
-                  eaten: false,
-                });
-              }
-            });
-            setMeals(initialMeals);
-          }
-        } else {
-          // Initialize with quota info if fetch fails
-          const initialMeals: MealBox[] = [];
-          let id = 1;
-          MEAL_QUOTAS.forEach((quota) => {
-            for (let i = 0; i < quota.count; i++) {
-              initialMeals.push({
-                id: id++,
-                type: quota.type,
-                eaten: false,
-              });
-            }
-          });
-          setMeals(initialMeals);
-        }
-      } catch (error) {
-        console.error("Error fetching meals:", error);
-        // Initialize with quota info on error
+        // Initialize meals structure
         const initialMeals: MealBox[] = [];
-        let id = 1;
         MEAL_QUOTAS.forEach((quota) => {
           for (let i = 0; i < quota.count; i++) {
             initialMeals.push({
-              id: id++,
               type: quota.type,
-              eaten: false,
+              hasEntryToday: false,
             });
           }
         });
         setMeals(initialMeals);
+
+        // Load week entries
+        const weekResponse = await fetch(
+          `/api/meat-entries?action=by-week&week_start=${weekStart}`
+        );
+        if (weekResponse.ok) {
+          const weekData = await weekResponse.json();
+          setWeekEntries(weekData.entries || []);
+
+          // Mark meals that have entries for today
+          const todayEntries = (weekData.entries || []).filter(
+            (e: MeatEntry) => e.date === selectedDate
+          );
+          const todayMeatTypes = new Set(
+            todayEntries.map((e: MeatEntry) => e.meat_type)
+          );
+
+          // Don't update meals based on todayEntries - this was causing mismatch
+          // The meals array should just track the quota structure
+          // The visual state should be based on the actual weekEntries data
+        }
+      } catch (error) {
+        console.error("Error loading data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    initializeMeals();
-  }, []);
+    loadData();
+  }, [selectedDate, weekStart]);
 
   // Load meat entries history
   useEffect(() => {
-    const loadEntries = async () => {
+    const loadHistory = async () => {
       try {
         const response = await fetch("/api/meat-entries");
         if (response.ok) {
           const data = await response.json();
-          setEntries(data.entries || []);
+          setHistoryEntries(data.entries || []);
         }
       } catch (error) {
         console.error("Error loading meat entries:", error);
       }
     };
 
-    loadEntries();
+    loadHistory();
   }, []);
 
-  const handleMealClick = async (mealId: number) => {
-    const meal = meals.find((m) => m.id === mealId);
-    if (!meal) return;
-
-    setUpdating(mealId);
-    const newEatenState = !meal.eaten;
+  const handleMealClick = async (meatType: MeatType, isTileFilled: boolean) => {
+    setUpdating(meatType);
 
     try {
-      const response = await fetch("/api/meals", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          mealId,
-          eaten: newEatenState,
-        }),
-      });
-
-      if (response.ok) {
-        setMeals((prevMeals) =>
-          prevMeals.map((m) =>
-            m.id === mealId ? { ...m, eaten: newEatenState } : m
-          )
+      if (isTileFilled) {
+        // Tile is already filled - remove the entry
+        // Find the most recent entry of this type in the week
+        const entriesOfType = weekEntries.filter(
+          (e) => e.meat_type === meatType
         );
+        const entryToRemove = entriesOfType[entriesOfType.length - 1]; // Remove most recent
 
-        // If meal is now marked as eaten, add entry to history
-        if (newEatenState) {
-          const meatType = meal.type;
-          try {
-            const addResponse = await fetch("/api/meat-entries", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                date: selectedDate,
-                meat_type: meatType,
-              }),
-            });
+        if (entryToRemove) {
+          const response = await fetch("/api/meat-entries", {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ entryId: entryToRemove.id }),
+          });
 
-            if (addResponse.ok) {
-              const newEntry = await addResponse.json();
-              setEntries((prev) => [newEntry.entry, ...prev].slice(0, 10));
-            }
-          } catch (error) {
-            console.error("Error adding meat entry:", error);
+          if (response.ok) {
+            setWeekEntries((prev) =>
+              prev.filter((e) => e.id !== entryToRemove.id)
+            );
+            setHistoryEntries((prev) =>
+              prev.filter((e) => e.id !== entryToRemove.id)
+            );
           }
         }
       } else {
-        console.error("Failed to update meal");
+        // Tile is empty - add entry for today
+        const response = await fetch("/api/meat-entries", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            date: selectedDate,
+            meat_type: meatType,
+          }),
+        });
+
+        if (response.ok) {
+          const newEntry = await response.json();
+          setWeekEntries((prev) => [newEntry.entry, ...prev]);
+          setHistoryEntries((prev) => [newEntry.entry, ...prev].slice(0, 10));
+        }
       }
     } catch (error) {
       console.error("Error updating meal:", error);
@@ -213,7 +204,8 @@ export function MeatTracker() {
       });
 
       if (response.ok) {
-        setEntries((prev) => prev.filter((e) => e.id !== entryId));
+        setWeekEntries((prev) => prev.filter((e) => e.id !== entryId));
+        setHistoryEntries((prev) => prev.filter((e) => e.id !== entryId));
       } else {
         console.error("Failed to delete entry");
       }
@@ -245,7 +237,9 @@ export function MeatTracker() {
 
       if (response.ok) {
         const newEntry = await response.json();
-        setEntries((prev) => [newEntry.entry, ...prev].slice(0, 10));
+        setHistoryEntries((prev: MeatEntry[]) =>
+          [newEntry.entry, ...prev].slice(0, 10)
+        );
         setDialogOpen(false);
         setSelectedPastDate("");
         setSelectedMeatType(null);
@@ -268,6 +262,10 @@ export function MeatTracker() {
 
   const getMealTypeInfo = (type: MeatType) => {
     return MEAL_QUOTAS.find((q) => q.type === type)!;
+  };
+
+  const getWeeklyCount = (meatType: MeatType): number => {
+    return weekEntries.filter((e) => e.meat_type === meatType).length;
   };
 
   const formatDate = (dateString: string) => {
@@ -304,48 +302,58 @@ export function MeatTracker() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Weekly Meat Tracker</CardTitle>
+        <CardTitle>Weekly Meat Tracker (Monday - Sunday)</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Click on a meal box to mark it as eaten and record it. Click again to
-          undo.
+          Click on a meat tile to add an entry for today. Click again to remove.
         </p>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
-          {meals.map((meal) => {
+          {meals.map((meal, index) => {
             const typeInfo = getMealTypeInfo(meal.type);
-            const isUpdating = updating === meal.id;
+            const isUpdating = updating === meal.type;
+
+            // Get count of this meat type in the week
+            const weeklyCount = weekEntries.filter(
+              (e) => e.meat_type === meal.type
+            ).length;
+
+            // Get all slots of this type up to this index
+            const slotsOfType = meals.filter((m) => m.type === meal.type);
+            const indexInType = slotsOfType.indexOf(meal);
+
+            // This tile is green if its index is less than the weekly count
+            // (so first 3 red meat tiles are green if there are 3 weekly entries)
+            const isSlotFilled = indexInType < weeklyCount;
 
             return (
               <button
-                key={meal.id}
-                onClick={() => handleMealClick(meal.id)}
+                key={`${meal.type}-${index}`}
+                onClick={() => handleMealClick(meal.type, isSlotFilled)}
                 disabled={isUpdating}
                 className={cn(
                   "relative aspect-square rounded-lg border-2 transition-all duration-200",
                   "hover:scale-105 active:scale-95",
                   "disabled:opacity-50 disabled:cursor-not-allowed",
-                  meal.eaten
+                  isSlotFilled
                     ? "border-green-500 bg-green-100 dark:bg-green-900/30"
                     : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800",
-                  meal.eaten && "ring-2 ring-green-500 ring-offset-2"
+                  isSlotFilled && "ring-2 ring-green-500 ring-offset-2"
                 )}
-                title={`${typeInfo.label} - ${
-                  meal.eaten ? "Eaten" : "Not eaten"
-                }`}
+                title={`${typeInfo.label} - Click to add entry for today`}
               >
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
                   <div
                     className={cn(
                       "w-8 h-8 rounded-full mb-1",
                       typeInfo.color,
-                      meal.eaten && "opacity-50"
+                      isSlotFilled && "opacity-50"
                     )}
                   />
                   <span className="text-xs font-medium text-center leading-tight">
                     {typeInfo.label}
                   </span>
-                  {meal.eaten && (
+                  {isSlotFilled && (
                     <span className="text-xs text-green-600 dark:text-green-400 mt-1">
                       ✓
                     </span>
@@ -364,21 +372,19 @@ export function MeatTracker() {
         <div className="mt-6 pt-4 border-t">
           <div className="flex flex-wrap gap-4 text-sm">
             {MEAL_QUOTAS.map((quota) => {
-              const eatenCount = meals.filter(
-                (m) => m.type === quota.type && m.eaten
-              ).length;
+              const weekCount = getWeeklyCount(quota.type);
               return (
                 <div key={quota.type} className="flex items-center gap-2">
                   <div className={cn("w-4 h-4 rounded-full", quota.color)} />
                   <span className="font-medium">{quota.label}:</span>
                   <span
                     className={cn(
-                      eatenCount === quota.count
+                      weekCount === quota.count
                         ? "text-green-600 dark:text-green-400"
                         : "text-gray-600 dark:text-gray-400"
                     )}
                   >
-                    {eatenCount}/{quota.count}
+                    {weekCount}/{quota.count}
                   </span>
                 </div>
               );
@@ -485,13 +491,13 @@ export function MeatTracker() {
             onClick={() => dialogOpen && setDialogOpen(false)}
             className={dialogOpen ? "fixed inset-0 z-40" : "hidden"}
           />
-          {entries.length === 0 ? (
+          {historyEntries.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
               No recorded entries yet
             </p>
           ) : (
             <div className="space-y-2">
-              {entries.map((entry) => {
+              {historyEntries.map((entry) => {
                 const typeInfo = getMealTypeInfo(entry.meat_type);
                 const isDeletingThis = deleting === entry.id;
                 return (
