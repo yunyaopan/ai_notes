@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { Trash2 } from "lucide-react";
+import { Trash2, Plus, X } from "lucide-react";
 
 type MeatType =
   | "red_meat"
@@ -52,6 +54,12 @@ export function MeatTracker() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedPastDate, setSelectedPastDate] = useState<string>("");
+  const [selectedMeatType, setSelectedMeatType] = useState<MeatType | null>(
+    null
+  );
+  const [addingPastEntry, setAddingPastEntry] = useState(false);
   const selectedDate = new Date().toISOString().split("T")[0];
 
   // Initialize meals with quota info
@@ -216,6 +224,48 @@ export function MeatTracker() {
     }
   };
 
+  const handleAddPastEntry = async () => {
+    if (!selectedPastDate || !selectedMeatType) {
+      alert("Please select both a date and meat type");
+      return;
+    }
+
+    setAddingPastEntry(true);
+    try {
+      const response = await fetch("/api/meat-entries", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          date: selectedPastDate,
+          meat_type: selectedMeatType,
+        }),
+      });
+
+      if (response.ok) {
+        const newEntry = await response.json();
+        setEntries((prev) => [newEntry.entry, ...prev].slice(0, 10));
+        setDialogOpen(false);
+        setSelectedPastDate("");
+        setSelectedMeatType(null);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Failed to add entry", {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData.error,
+        });
+        alert(`Failed to add entry: ${errorData.error || response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error adding entry:", error);
+      alert("Error adding entry");
+    } finally {
+      setAddingPastEntry(false);
+    }
+  };
+
   const getMealTypeInfo = (type: MeatType) => {
     return MEAL_QUOTAS.find((q) => q.type === type)!;
   };
@@ -338,9 +388,103 @@ export function MeatTracker() {
 
         {/* History Section */}
         <div className="mt-8 pt-6 border-t">
-          <h3 className="font-semibold text-lg mb-4">
-            Recent History (Last 10 Entries)
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-lg">
+              Recent History (Last 10 Entries)
+            </h3>
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2"
+              onClick={() => setDialogOpen(true)}
+            >
+              <Plus className="w-4 h-4" />
+              Add Entry
+            </Button>
+          </div>
+
+          {/* Modal Overlay */}
+          {dialogOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+              <div
+                className="bg-white dark:bg-gray-950 rounded-lg shadow-lg p-6 max-w-md w-full mx-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold">
+                    Add Entry for Different Date
+                  </h2>
+                  <button
+                    onClick={() => setDialogOpen(false)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Select a date and meat type to record an entry
+                </p>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="past-date">Date</Label>
+                    <Input
+                      id="past-date"
+                      type="date"
+                      value={selectedPastDate}
+                      onChange={(e) => setSelectedPastDate(e.target.value)}
+                      max={selectedDate}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Meat Type</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {MEAL_QUOTAS.map((quota) => (
+                        <Button
+                          key={quota.type}
+                          variant={
+                            selectedMeatType === quota.type
+                              ? "default"
+                              : "outline"
+                          }
+                          onClick={() => setSelectedMeatType(quota.type)}
+                          className="justify-start gap-2"
+                        >
+                          <div
+                            className={cn("w-3 h-3 rounded-full", quota.color)}
+                          />
+                          {quota.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      onClick={handleAddPastEntry}
+                      disabled={
+                        addingPastEntry ||
+                        !selectedPastDate ||
+                        !selectedMeatType
+                      }
+                      className="flex-1"
+                    >
+                      {addingPastEntry ? "Adding..." : "Add Entry"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setDialogOpen(false)}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <div
+            onClick={() => dialogOpen && setDialogOpen(false)}
+            className={dialogOpen ? "fixed inset-0 z-40" : "hidden"}
+          />
           {entries.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
               No recorded entries yet

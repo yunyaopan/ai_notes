@@ -949,7 +949,7 @@ export async function addMeatEntry(
 ): Promise<MeatEntry> {
   const supabase = await createClient();
 
-  // Create new entry - allow duplicates (same meat type on same day is allowed)
+  // Create new entry
   const { data, error } = await supabase
     .from("meat_entries")
     .insert({
@@ -961,12 +961,17 @@ export async function addMeatEntry(
     .single();
 
   if (error) {
-    console.error("Database error creating meat entry:", error);
-    throw new Error("Failed to create meat entry");
+    console.error("Database error creating meat entry:", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
+    throw new Error(`Failed to create meat entry: ${error.message}`);
   }
 
   if (!data) {
-    throw new Error("Failed to create entry");
+    throw new Error("Failed to create entry: no data returned");
   }
 
   return data;

@@ -133,11 +133,10 @@ export async function POST(request: NextRequest) {
       entry,
     });
   } catch (error) {
-    console.error("Create meat entry API error:", error);
-    return NextResponse.json(
-      { error: "Failed to create meat entry" },
-      { status: 500 }
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Create meat entry API error:", { errorMessage, error });
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
