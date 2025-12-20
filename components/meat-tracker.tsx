@@ -97,14 +97,6 @@ export function MeatTracker() {
           const weekData = await weekResponse.json();
           setWeekEntries(weekData.entries || []);
 
-          // Mark meals that have entries for today
-          const todayEntries = (weekData.entries || []).filter(
-            (e: MeatEntry) => e.date === selectedDate
-          );
-          const todayMeatTypes = new Set(
-            todayEntries.map((e: MeatEntry) => e.meat_type)
-          );
-
           // Don't update meals based on todayEntries - this was causing mismatch
           // The meals array should just track the quota structure
           // The visual state should be based on the actual weekEntries data
@@ -182,7 +174,11 @@ export function MeatTracker() {
         if (response.ok) {
           const newEntry = await response.json();
           setWeekEntries((prev) => [newEntry.entry, ...prev]);
-          setHistoryEntries((prev) => [newEntry.entry, ...prev].slice(0, 10));
+          setHistoryEntries((prev) =>
+            [newEntry.entry, ...prev]
+              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+              .slice(0, 10)
+          );
         }
       }
     } catch (error) {
@@ -238,7 +234,9 @@ export function MeatTracker() {
       if (response.ok) {
         const newEntry = await response.json();
         setHistoryEntries((prev: MeatEntry[]) =>
-          [newEntry.entry, ...prev].slice(0, 10)
+          [newEntry.entry, ...prev]
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .slice(0, 10)
         );
         setDialogOpen(false);
         setSelectedPastDate("");

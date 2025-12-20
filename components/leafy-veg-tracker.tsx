@@ -16,8 +16,8 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { Plus, X } from "lucide-react";
 
-const DAILY_GOAL = 250; // grams per day
-const WEEKLY_GOAL = DAILY_GOAL * 7; // 1750 grams per week
+const DAILY_GOAL = 100; // grams per day
+const WEEKLY_GOAL = DAILY_GOAL * 7; // 700 grams per week
 
 interface LeafyVegEntry {
   id: number;
@@ -425,7 +425,7 @@ export function LeafyVegTracker() {
               Add Entry
             </Button>
           </div>
-          
+
           {/* Modal Overlay */}
           {dialogOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -434,7 +434,9 @@ export function LeafyVegTracker() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold">Add Entry for Different Date</h2>
+                  <h2 className="text-lg font-semibold">
+                    Add Entry for Different Date
+                  </h2>
                   <button
                     onClick={() => setDialogOpen(false)}
                     className="text-muted-foreground hover:text-foreground"
@@ -489,7 +491,10 @@ export function LeafyVegTracker() {
               </div>
             </div>
           )}
-          <div onClick={() => dialogOpen && setDialogOpen(false)} className={dialogOpen ? "fixed inset-0 z-40" : "hidden"} />
+          <div
+            onClick={() => dialogOpen && setDialogOpen(false)}
+            className={dialogOpen ? "fixed inset-0 z-40" : "hidden"}
+          />
           {entries.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">
               No entries yet. Start tracking your leafy vegetable consumption!
