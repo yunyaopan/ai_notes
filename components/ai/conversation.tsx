@@ -15,7 +15,9 @@ export function Conversation({
   }, [children]);
 
   return (
-    <div className={cn("flex flex-col gap-4 overflow-y-auto p-4", className)}>
+    <div
+      className={cn("flex flex-col gap-4 overflow-y-auto h-full", className)}
+    >
       {children}
       <div ref={messagesEndRef} />
     </div>

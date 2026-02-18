@@ -80,7 +80,7 @@ Be empathetic, constructive, and encouraging in all your responses.`;
       model: "qwen/qwen3-vl-30b-a3b-thinking",
       messages,
       temperature: 0.7,
-      max_tokens: 1000,
+      max_tokens: 1500,
     });
 
     const response = completion.choices[0]?.message?.content;

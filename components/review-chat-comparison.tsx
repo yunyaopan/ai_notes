@@ -144,11 +144,11 @@ function SingleReviewChat({
   };
 
   return (
-    <div className="flex flex-col border rounded-lg m-2 flex-1 min-w-[320px] max-w-[420px] bg-white shadow">
+    <div className="flex flex-col border rounded-lg m-2 flex-1 min-w-[340px] max-w-full bg-white shadow h-full">
       <div className="border-b px-4 py-2 font-bold text-center bg-gray-50">
         {label}
       </div>
-      <Conversation className="flex-1 p-2 overflow-y-auto min-h-[200px] max-h-[350px]">
+      <Conversation className="flex-1 p-2 overflow-y-auto min-h-[200px]">
         {messages.map((message) => (
           <Message
             key={message.id}
@@ -181,11 +181,11 @@ export function ReviewChatComparison({ userNotes }: ReviewChatComparisonProps) {
         <span className="font-bold">AI对比</span>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="flex flex-col h-[700px] max-h-[95vh] w-full max-w-6xl gap-0 p-0">
+        <DialogContent className="flex flex-col h-[90vh] max-h-[98vh] w-full max-w-[98vw] gap-0 p-0">
           <DialogHeader className="border-b px-6 py-4">
             <DialogTitle>Notes Review Chat Comparison</DialogTitle>
           </DialogHeader>
-          <div className="flex flex-row flex-1 overflow-x-auto gap-2 p-2 bg-gray-50">
+          <div className="flex flex-row flex-1 overflow-x-auto gap-4 p-4 bg-gray-50 min-h-0">
             {ANGLES.map((angle) => (
               <SingleReviewChat
                 key={angle.label}
