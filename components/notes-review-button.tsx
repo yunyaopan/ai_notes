@@ -30,14 +30,7 @@ export function NotesReviewButton({ userNotes }: NotesReviewButtonProps) {
   const [loading, setLoading] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
-
-  // Fetch latest notes and initialize with AI analysis
-  useEffect(() => {
-    if (open && !initialized) {
-      fetchNotesAndInitialize();
-    }
-  }, [open, initialized, fetchNotesAndInitialize]);
-
+  // Define fetchNotesAndInitialize before useEffect
   const fetchNotesAndInitialize = useCallback(async () => {
     try {
       // Fetch latest notes from the database
@@ -62,8 +55,9 @@ export function NotesReviewButton({ userNotes }: NotesReviewButtonProps) {
 
       // Format notes for context - include all fetched notes
       const notesContext = latestNotes
-        .map((chunk: { category?: string; content: string }) =>
-          `[${chunk.category ?? "uncategorized"}]: ${chunk.content}`
+        .map(
+          (chunk: { category?: string; content: string }) =>
+            `[${chunk.category ?? "uncategorized"}]: ${chunk.content}`,
         )
         .join("\n\n");
 
@@ -120,6 +114,13 @@ export function NotesReviewButton({ userNotes }: NotesReviewButtonProps) {
       setLoading(false);
     }
   }, []);
+
+  // Fetch latest notes and initialize with AI analysis
+  useEffect(() => {
+    if (open && !initialized) {
+      fetchNotesAndInitialize();
+    }
+  }, [open, initialized, fetchNotesAndInitialize]);
 
   const handleSendMessage = async (input: string) => {
     if (!input.trim()) return;

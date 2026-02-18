@@ -77,7 +77,7 @@ Be empathetic, constructive, and encouraging in all your responses.`;
     // if you want chat to always use gpt-5.2. Text categorization uses
     // a different file (`lib/api/openrouter.ts`) and remains unchanged.
     const completion = await openai.chat.completions.create({
-      model: "openai/gpt-5.2-chat",
+      model: "qwen/qwen3-vl-30b-a3b-thinking",
       messages,
       temperature: 0.7,
       max_tokens: 1000,
