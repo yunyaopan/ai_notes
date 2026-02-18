@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { MessageCircle } from "lucide-react";
 import {
   Dialog,
@@ -22,23 +22,23 @@ interface NotesReviewButtonProps {
   userNotes?: string[];
 }
 
+const INITIAL_ANALYSIS_PROMPT = `我是一个 INFP（基于 Myers-Briggs Type Indicator）。我希望能成长为更高阶的infp。 以下是我最近的日记内容。 请帮我分析我成长为高阶infp的最重要的一个突破点。 给我3个具体的行动实验。 请直接、客观、以成长为目标，不需要安慰。用中文回答。`;
+
 export function NotesReviewButton({ userNotes }: NotesReviewButtonProps) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
-  const INITIAL_ANALYSIS_PROMPT = `我是一个 INFP（基于 Myers-Briggs Type Indicator）。我希望能成长为更高阶的infp。 以下是我最近的日记内容。 请帮我分析我成长为高阶infp的最重要的一个突破点。 给我3个具体的行动实验。 请直接、客观、以成长为目标，不需要安慰。用中文回答。`;
 
   // Fetch latest notes and initialize with AI analysis
   useEffect(() => {
     if (open && !initialized) {
-      setLoading(true);
       fetchNotesAndInitialize();
     }
-  }, [open, initialized]);
+  }, [open, initialized, fetchNotesAndInitialize]);
 
-  const fetchNotesAndInitialize = async () => {
+  const fetchNotesAndInitialize = useCallback(async () => {
     try {
       // Fetch latest notes from the database
       const notesResponse = await fetch("/api/chunks", {
@@ -62,7 +62,9 @@ export function NotesReviewButton({ userNotes }: NotesReviewButtonProps) {
 
       // Format notes for context - include all fetched notes
       const notesContext = latestNotes
-        .map((chunk: any) => `[${chunk.category}]: ${chunk.content}`)
+        .map((chunk: { category?: string; content: string }) =>
+          `[${chunk.category ?? "uncategorized"}]: ${chunk.content}`
+        )
         .join("\n\n");
 
       console.log(`Fetched ${latestNotes.length} notes for analysis`);
@@ -117,7 +119,7 @@ export function NotesReviewButton({ userNotes }: NotesReviewButtonProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleSendMessage = async (input: string) => {
     if (!input.trim()) return;
