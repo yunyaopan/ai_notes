@@ -34,10 +34,30 @@ ${text}
   }
 
   try {
-    const chunks = JSON.parse(response);
-    return chunks;
+    const cleaned = response.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+    const chunks = JSON.parse(cleaned);
+    const result = Array.isArray(chunks) ? chunks : [chunks];
+    console.log("AI categorization result:", JSON.stringify(result, null, 2));
+    // Normalize common category mismatches from the model
+    const categoryAliases: Record<string, string> = {
+      wishes: "wish",
+      worry: "worries_anxiety",
+      anxiety: "worries_anxiety",
+      emotion: "other_emotions",
+      emotions: "other_emotions",
+      insight: "insights",
+      gratitude: "gratitudes",
+      affirmation: "affirmations",
+      idea: "ideas",
+      experiment: "experiments",
+      question: "questions",
+    };
+    return result.map((chunk) => ({
+      ...chunk,
+      category: categoryAliases[chunk.category] ?? chunk.category,
+    }));
   } catch (error) {
-    console.error("Failed to parse AI response:", error);
+    console.error("Failed to parse AI response:", error, "\nRaw response:", response);
     throw new Error("Invalid response format from AI model");
   }
 }
