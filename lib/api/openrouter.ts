@@ -22,9 +22,10 @@ ${text}
 `;
 
   const completion = await openai.chat.completions.create({
-    model: "qwen/qwen3-vl-30b-a3b-thinking",
+    model: "openai/gpt-4.1-nano",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.3,
+    max_tokens: 4096,
   });
 
   const response = completion.choices[0]?.message?.content;
